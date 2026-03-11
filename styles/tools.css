@@ -1,0 +1,251 @@
+/* ==============================
+   DocuMind — Tool Page Layout
+   ============================== */
+
+/* Tool Page Container */
+.tool-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1.5rem 3rem;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 1rem 0;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.breadcrumb a {
+    color: var(--color-text-muted);
+}
+
+.breadcrumb a:hover {
+    color: var(--color-accent);
+}
+
+.breadcrumb-sep {
+    color: var(--color-border);
+    font-size: 0.75rem;
+}
+
+/* Tool Header */
+.tool-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.tool-header-icon {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    color: var(--color-accent);
+}
+
+.tool-header-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.tool-header h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.tool-header p {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+/* Main work area */
+.tool-main {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Side-by-side layout for some tools */
+.tool-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 700px) {
+    .tool-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Canvas Preview */
+.preview-container {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: #f3f4f6;
+    position: relative;
+}
+
+.preview-container canvas {
+    width: 100%;
+    display: block;
+}
+
+/* Signature pad area */
+.signature-pad {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    cursor: crosshair;
+}
+
+/* Text Output Area */
+.output-area {
+    margin-top: 1rem;
+}
+
+.output-area textarea,
+.output-area pre {
+    width: 100%;
+    min-height: 200px;
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    resize: vertical;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Copy button group */
+.output-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+/* Metadata Table */
+.metadata-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8125rem;
+}
+
+.metadata-table th,
+.metadata-table td {
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.metadata-table th {
+    font-weight: 600;
+    color: var(--color-text-muted);
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--color-surface);
+}
+
+.metadata-table td input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 0.25rem;
+    font-size: 0.8125rem;
+}
+
+.metadata-table td input:focus {
+    background: var(--color-surface);
+    border-radius: var(--radius-sm);
+}
+
+/* Diff view */
+.diff-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.diff-panel {
+    padding: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1.8;
+    overflow: auto;
+    max-height: 400px;
+}
+
+.diff-panel:first-child {
+    border-right: 1px solid var(--color-border);
+}
+
+.diff-add {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.diff-remove {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+/* Tree view (bookmarks) */
+.tree {
+    padding-left: 0;
+    list-style: none;
+    font-size: 0.8125rem;
+}
+
+.tree ul {
+    padding-left: 1.25rem;
+    list-style: none;
+}
+
+.tree li {
+    padding: 0.25rem 0;
+}
+
+.tree-toggle {
+    cursor: pointer;
+    color: var(--color-accent);
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .tool-header {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .tool-header h1 {
+        font-size: 1.25rem;
+    }
+
+    .diff-view {
+        grid-template-columns: 1fr;
+    }
+
+    .diff-panel:first-child {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+    }
+}

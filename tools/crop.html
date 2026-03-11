@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Pages — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+        </div>
+    </nav>
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Organize</span><span class="breadcrumb-sep">›</span><span>Crop
+                Pages</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M6.13 1L6 16a2 2 0 0 0 2 2h15" />
+                    <path d="M1 6.13L16 6a2 2 0 0 1 2 2v15" />
+                </svg></div>
+            <div>
+                <h1>Crop Pages</h1>
+                <p>Adjust page margins and crop area.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div id="dropzone-area"></div>
+            <div class="options-panel" id="options" style="display:none;">
+                <h3>Margins (mm)</h3>
+                <div class="option-row"><label class="option-label">Top</label><input type="number" id="m-top" value="0"
+                        min="0"></div>
+                <div class="option-row"><label class="option-label">Bottom</label><input type="number" id="m-bottom"
+                        value="0" min="0"></div>
+                <div class="option-row"><label class="option-label">Left</label><input type="number" id="m-left"
+                        value="0" min="0"></div>
+                <div class="option-row"><label class="option-label">Right</label><input type="number" id="m-right"
+                        value="0" min="0"></div>
+            </div>
+            <button class="btn btn-primary" id="btn-process" disabled>Crop Pages</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>Crop Complete</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div id="download-area"></div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+    <script src="../libs/pdf-lib.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let currentFile = null;
+            const btnProcess = document.getElementById('btn-process');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+            createDropzone({
+                container: document.getElementById('dropzone-area'), accept: '.pdf', multiple: false,
+                onFiles: function (files) { if (files.length) { currentFile = files[0]; document.getElementById('options').style.display = 'block'; btnProcess.disabled = false; } }
+            });
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show(); progress.update(20, 'Cropping...');
+                    const mmToPt = 2.835;
+                    const t = parseFloat(document.getElementById('m-top').value) * mmToPt;
+                    const b = parseFloat(document.getElementById('m-bottom').value) * mmToPt;
+                    const l = parseFloat(document.getElementById('m-left').value) * mmToPt;
+                    const r = parseFloat(document.getElementById('m-right').value) * mmToPt;
+                    const doc = await loadPDF(currentFile);
+                    doc.getPages().forEach(function (page) {
+                        const sz = page.getSize();
+                        page.setCropBox(l, b, sz.width - l - r, sz.height - t - b);
+                    });
+                    progress.update(80, 'Saving...'); const blob = await savePDF(doc); progress.update(100, 'Done!');
+                    document.getElementById('results-info').textContent = 'Cropped • ' + formatFileSize(blob.size);
+                    document.getElementById('results-area').classList.add('active');
+                    const da = document.getElementById('download-area'); da.innerHTML = '';
+                    createDownloadButton(blob, 'cropped.pdf', da);
+                    showToast('Pages cropped!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+        })();
+    </script>
+</body>
+
+</html>

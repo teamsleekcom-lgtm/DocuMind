@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Word — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank">GitHub</a></div>
+    </nav>
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Convert</span><span class="breadcrumb-sep">›</span><span>PDF to
+                Word</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg></div>
+            <div>
+                <h1>PDF to Word</h1>
+                <p>Extract PDF content to an editable DOCX file.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div id="dropzone-area"></div>
+            <button class="btn btn-primary" id="btn-process" disabled>Convert to DOCX</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>DOCX Ready</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div id="download-area"></div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+    <script src="../libs/pdf.min.js"></script>
+    <script src="../libs/jszip.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let currentFile = null;
+            const btnProcess = document.getElementById('btn-process');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '../libs/pdf.worker.min.js';
+            createDropzone({
+                container: document.getElementById('dropzone-area'), accept: '.pdf', multiple: false,
+                onFiles: function (files) { if (files.length) { currentFile = files[0]; btnProcess.disabled = false; } }
+            });
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show(); progress.update(10, 'Extracting text...');
+                    const data = new Uint8Array(await currentFile.arrayBuffer());
+                    const pdf = await pdfjsLib.getDocument({ data }).promise;
+                    const paragraphs = [];
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        progress.update(10 + (i / pdf.numPages) * 70, 'Processing page ' + i + '...');
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        const text = content.items.map(function (it) { return it.str; }).join(' ').trim();
+                        if (text) paragraphs.push(text);
+                    }
+                    progress.update(85, 'Building DOCX...');
+                    function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+                    const docXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+                        '<w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+                        '<w:body>' + paragraphs.map(function (p) {
+                            return '<w:p><w:r><w:rPr></w:rPr><w:t xml:space="preserve">' + esc(p) + '</w:t></w:r></w:p>';
+                        }).join('') + '</w:body></w:document>';
+                    const zip = new JSZip();
+                    zip.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+                    zip.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+                    zip.file('word/document.xml', docXml);
+                    zip.file('word/_rels/document.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>');
+                    const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                    progress.update(100, 'Done!');
+                    document.getElementById('results-info').textContent = pdf.numPages + ' pages converted • ' + formatFileSize(blob.size);
+                    document.getElementById('results-area').classList.add('active');
+                    const da = document.getElementById('download-area'); da.innerHTML = '';
+                    createDownloadButton(blob, currentFile.name.replace('.pdf', '.docx'), da);
+                    showToast('DOCX created!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+        })();
+    </script>
+</body>
+
+</html>

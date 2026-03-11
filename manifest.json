@@ -1,0 +1,454 @@
+{
+    "name": "DocuMind",
+    "version": "1.0.0",
+    "description": "Client-side PDF and document toolkit. Zero server. All processing in browser.",
+    "agent_api_global": "window.DocuMind",
+    "agent_api_src": "/core/agent-api.js",
+    "tools": [
+        {
+            "id": "merge",
+            "name": "Merge PDFs",
+            "category": "organize",
+            "path": "/tools/merge.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.merge(files: File[]) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "split",
+            "name": "Split PDF",
+            "category": "organize",
+            "path": "/tools/split.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/zip",
+            "agent_method": "DocuMind.split(file: File, options) → Promise<Blob[]>",
+            "params": {
+                "mode": "pages|ranges|bookmarks",
+                "ranges": "[[1,3],[5,7]]"
+            }
+        },
+        {
+            "id": "rotate",
+            "name": "Rotate Pages",
+            "category": "organize",
+            "path": "/tools/rotate.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.rotate(file: File, options) → Promise<Blob>",
+            "params": {
+                "pages": "all|number[]",
+                "degrees": "90|180|270"
+            }
+        },
+        {
+            "id": "reorder",
+            "name": "Reorder Pages",
+            "category": "organize",
+            "path": "/tools/reorder.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.reorder(file: File, pageOrder: number[]) → Promise<Blob>",
+            "params": {
+                "pageOrder": "number[]"
+            }
+        },
+        {
+            "id": "remove-blank",
+            "name": "Remove Blank Pages",
+            "category": "organize",
+            "path": "/tools/remove-blank.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.removeBlankPages(file: File, threshold?: number) → Promise<Blob>",
+            "params": {
+                "threshold": "1-10"
+            }
+        },
+        {
+            "id": "crop",
+            "name": "Crop Pages",
+            "category": "organize",
+            "path": "/tools/crop.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.crop(file: File, margins) → Promise<Blob>",
+            "params": {
+                "top": "number",
+                "bottom": "number",
+                "left": "number",
+                "right": "number"
+            }
+        },
+        {
+            "id": "protect",
+            "name": "Protect PDF",
+            "category": "security",
+            "path": "/tools/protect.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.protect(file: File, password: string) → Promise<Blob>",
+            "params": {
+                "password": "string"
+            }
+        },
+        {
+            "id": "unlock",
+            "name": "Unlock PDF",
+            "category": "security",
+            "path": "/tools/unlock.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.unlock(file: File, password: string) → Promise<Blob>",
+            "params": {
+                "password": "string"
+            }
+        },
+        {
+            "id": "redact",
+            "name": "Redact PDF",
+            "category": "security",
+            "path": "/tools/redact.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.redact(file: File, regions) → Promise<Blob>",
+            "params": {
+                "regions": "[{page, x, y, w, h}]"
+            }
+        },
+        {
+            "id": "watermark",
+            "name": "Watermark",
+            "category": "enrich",
+            "path": "/tools/watermark.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.watermark(file: File, options) → Promise<Blob>",
+            "params": {
+                "text": "string",
+                "opacity": "0-1",
+                "angle": "number",
+                "fontSize": "number"
+            }
+        },
+        {
+            "id": "page-numbers",
+            "name": "Page Numbers",
+            "category": "enrich",
+            "path": "/tools/page-numbers.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.addPageNumbers(file: File, options) → Promise<Blob>",
+            "params": {
+                "position": "string",
+                "startAt": "number",
+                "fontSize": "number"
+            }
+        },
+        {
+            "id": "header-footer",
+            "name": "Header & Footer",
+            "category": "enrich",
+            "path": "/tools/header-footer.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.addHeaderFooter(file: File, options) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "esign",
+            "name": "E-Sign",
+            "category": "enrich",
+            "path": "/tools/esign.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.esign(file: File, signature) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "pdf-to-images",
+            "name": "PDF to Images",
+            "category": "convert",
+            "path": "/tools/pdf-to-images.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/zip",
+            "agent_method": "DocuMind.toImages(file: File, options) → Promise<Blob[]>",
+            "params": {
+                "format": "jpeg|png|webp",
+                "dpi": "number"
+            }
+        },
+        {
+            "id": "images-to-pdf",
+            "name": "Images to PDF",
+            "category": "convert",
+            "path": "/tools/images-to-pdf.html",
+            "input_types": [
+                "image/jpeg",
+                "image/png",
+                "image/webp",
+                "image/gif"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.fromImages(files: File[], options) → Promise<Blob>",
+            "params": {
+                "pageSize": "a4|letter|fit"
+            }
+        },
+        {
+            "id": "pdf-to-text",
+            "name": "PDF to Text",
+            "category": "convert",
+            "path": "/tools/pdf-to-text.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "text/plain",
+            "agent_method": "DocuMind.toText(file: File) → Promise<string>",
+            "params": {}
+        },
+        {
+            "id": "pdf-to-markdown",
+            "name": "PDF to Markdown",
+            "category": "convert",
+            "path": "/tools/pdf-to-markdown.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "text/markdown",
+            "agent_method": "DocuMind.toMarkdown(file: File) → Promise<string>",
+            "params": {}
+        },
+        {
+            "id": "html-to-pdf",
+            "name": "HTML to PDF",
+            "category": "convert",
+            "path": "/tools/html-to-pdf.html",
+            "input_types": [
+                "text/html"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.fromHTML(htmlString: string, options) → Promise<Blob>",
+            "params": {
+                "pageSize": "a4|letter"
+            }
+        },
+        {
+            "id": "word-to-pdf",
+            "name": "Word to PDF",
+            "category": "convert",
+            "path": "/tools/word-to-pdf.html",
+            "input_types": [
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.fromWord(file: File) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "excel-to-pdf",
+            "name": "Excel to PDF",
+            "category": "convert",
+            "path": "/tools/excel-to-pdf.html",
+            "input_types": [
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.fromExcel(file: File) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "pptx-to-pdf",
+            "name": "PPTX to PDF",
+            "category": "convert",
+            "path": "/tools/pptx-to-pdf.html",
+            "input_types": [
+                "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.fromPptx(file: File) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "pdf-to-word",
+            "name": "PDF to Word",
+            "category": "convert",
+            "path": "/tools/pdf-to-word.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "agent_method": "DocuMind.toWord(file: File) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "pdf-to-excel",
+            "name": "PDF to Excel",
+            "category": "convert",
+            "path": "/tools/pdf-to-excel.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "agent_method": "DocuMind.toExcel(file: File) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "pdf-to-pptx",
+            "name": "PDF to PPTX",
+            "category": "convert",
+            "path": "/tools/pdf-to-pptx.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "agent_method": "DocuMind.toPptx(file: File) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "ocr",
+            "name": "OCR",
+            "category": "extract",
+            "path": "/tools/ocr.html",
+            "input_types": [
+                "application/pdf",
+                "image/png",
+                "image/jpeg"
+            ],
+            "output_type": "text/plain",
+            "agent_method": "DocuMind.ocr(file: File, options) → Promise<{text: string, json: object}>",
+            "params": {
+                "lang": "eng|fra|deu|spa|ara|chi_sim|hin|jpn|por"
+            }
+        },
+        {
+            "id": "form-extractor",
+            "name": "Form Extractor",
+            "category": "extract",
+            "path": "/tools/form-extractor.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/json",
+            "agent_method": "DocuMind.extractForms(file: File) → Promise<{fields: object[], csv: string, json: object}>",
+            "params": {}
+        },
+        {
+            "id": "metadata-editor",
+            "name": "Metadata Editor",
+            "category": "extract",
+            "path": "/tools/metadata-editor.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.readMetadata(file: File) → Promise<object>",
+            "params": {}
+        },
+        {
+            "id": "table-extractor",
+            "name": "Table Extractor",
+            "category": "extract",
+            "path": "/tools/table-extractor.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/json",
+            "agent_method": "DocuMind.extractTables(file: File) → Promise<{tables: object[][], csv: string}>",
+            "params": {}
+        },
+        {
+            "id": "bookmark-extractor",
+            "name": "Bookmark Extractor",
+            "category": "extract",
+            "path": "/tools/bookmark-extractor.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/json",
+            "agent_method": "DocuMind.extractBookmarks(file: File) → Promise<object[]>",
+            "params": {}
+        },
+        {
+            "id": "compare",
+            "name": "Compare / Diff",
+            "category": "review",
+            "path": "/tools/compare.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/json",
+            "agent_method": "DocuMind.compare(file1: File, file2: File) → Promise<{diff: object, visualDiff: Blob}>",
+            "params": {}
+        },
+        {
+            "id": "compress",
+            "name": "Compress PDF",
+            "category": "review",
+            "path": "/tools/compress.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.compress(file: File, options) → Promise<Blob>",
+            "params": {
+                "level": "low|medium|high"
+            }
+        },
+        {
+            "id": "repair",
+            "name": "Repair PDF",
+            "category": "review",
+            "path": "/tools/repair.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/pdf",
+            "agent_method": "DocuMind.repair(file: File) → Promise<Blob>",
+            "params": {}
+        },
+        {
+            "id": "batch",
+            "name": "Batch Processor",
+            "category": "review",
+            "path": "/tools/batch.html",
+            "input_types": [
+                "application/pdf"
+            ],
+            "output_type": "application/zip",
+            "agent_method": "DocuMind.batch(files: File[], operation: string, options) → Promise<Blob>",
+            "params": {
+                "operation": "string",
+                "manifest": "url"
+            }
+        }
+    ]
+}

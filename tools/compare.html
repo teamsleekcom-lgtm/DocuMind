@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare / Diff PDFs — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+    <style>
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .split-pane {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.8125rem;
+            line-height: 1.7;
+        }
+
+        .split-pane h4 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .diff-add {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .diff-del {
+            background: #fee2e2;
+            color: #991b1b;
+            text-decoration: line-through;
+        }
+
+        .diff-eq {
+            color: var(--color-text);
+        }
+
+        @media (max-width:600px) {
+            .split-view {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank">GitHub</a></div>
+    </nav>
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Review</span><span class="breadcrumb-sep">›</span><span>Compare /
+                Diff</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="2" y="4" width="8" height="16" rx="1" />
+                    <rect x="14" y="4" width="8" height="16" rx="1" />
+                    <path d="M12 2v20" />
+                </svg></div>
+            <div>
+                <h1>Compare / Diff PDFs</h1>
+                <p>Side-by-side text comparison with highlighted differences.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div class="split-view">
+                <div>
+                    <p style="font-size:0.875rem; font-weight:500; margin-bottom:0.5rem;">Original PDF</p>
+                    <div id="drop-a"></div>
+                </div>
+                <div>
+                    <p style="font-size:0.875rem; font-weight:500; margin-bottom:0.5rem;">Modified PDF</p>
+                    <div id="drop-b"></div>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btn-process" style="margin-top:1rem;" disabled>Compare</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>Comparison Ready</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div class="split-view">
+                    <div class="split-pane">
+                        <h4>Original</h4>
+                        <div id="diff-left"></div>
+                    </div>
+                    <div class="split-pane">
+                        <h4>Modified</h4>
+                        <div id="diff-right"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+    <script src="../libs/pdf.min.js"></script>
+    <script src="../libs/diff-match-patch.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let fileA = null, fileB = null;
+            const btnProcess = document.getElementById('btn-process');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '../libs/pdf.worker.min.js';
+            function checkReady() { btnProcess.disabled = !(fileA && fileB); }
+            createDropzone({
+                container: document.getElementById('drop-a'), accept: '.pdf', multiple: false, label: 'Drop original PDF',
+                onFiles: function (f) { if (f.length) { fileA = f[0]; checkReady(); } }
+            });
+            createDropzone({
+                container: document.getElementById('drop-b'), accept: '.pdf', multiple: false, label: 'Drop modified PDF',
+                onFiles: function (f) { if (f.length) { fileB = f[0]; checkReady(); } }
+            });
+            async function extractText(file) {
+                const data = new Uint8Array(await file.arrayBuffer());
+                const pdf = await pdfjsLib.getDocument({ data }).promise;
+                const parts = [];
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    parts.push(content.items.map(function (it) { return it.str; }).join(' '));
+                }
+                return parts.join('\n');
+            }
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show(); progress.update(20, 'Extracting text from original...');
+                    const textA = await extractText(fileA);
+                    progress.update(55, 'Extracting text from modified...');
+                    const textB = await extractText(fileB);
+                    progress.update(80, 'Computing diff...');
+                    const dmp = new diff_match_patch();
+                    const diffs = dmp.diff_main(textA, textB);
+                    dmp.diff_cleanupSemantic(diffs);
+                    let adds = 0, dels = 0;
+                    let leftHtml = '', rightHtml = '';
+                    diffs.forEach(function (d) {
+                        const esc = d[1].replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+                        if (d[0] === 0) { leftHtml += '<span class="diff-eq">' + esc + '</span>'; rightHtml += '<span class="diff-eq">' + esc + '</span>'; }
+                        else if (d[0] === -1) { leftHtml += '<span class="diff-del">' + esc + '</span>'; dels++; }
+                        else if (d[0] === 1) { rightHtml += '<span class="diff-add">' + esc + '</span>'; adds++; }
+                    });
+                    document.getElementById('diff-left').innerHTML = leftHtml;
+                    document.getElementById('diff-right').innerHTML = rightHtml;
+                    progress.update(100, 'Done!');
+                    document.getElementById('results-info').textContent = adds + ' additions, ' + dels + ' deletions';
+                    document.getElementById('results-area').classList.add('active');
+                    showToast('Comparison complete!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+        })();
+    </script>
+</body>
+
+</html>

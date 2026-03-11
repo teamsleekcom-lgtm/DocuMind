@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rotate PDF pages by 90°, 180°, or 270°. Select individual pages or rotate all.">
+    <title>Rotate Pages — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank" rel="noopener"><svg
+                    viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
+                </svg>GitHub</a></div>
+    </nav>
+
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Organize</span><span class="breadcrumb-sep">›</span><span>Rotate
+                Pages</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M21.5 2v6h-6" />
+                    <path d="M21.34 15.57a10 10 0 1 1-.57-8.38" />
+                </svg></div>
+            <div>
+                <h1>Rotate Pages</h1>
+                <p>Select pages and rotate by 90°, 180°, or 270°.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div id="dropzone-area"></div>
+            <div id="page-preview" style="display:none;">
+                <div class="options-panel">
+                    <h3>Select Pages & Rotation</h3>
+                    <div class="btn-group" style="margin-bottom:1rem;">
+                        <button class="btn btn-secondary" id="btn-select-all">Select All</button>
+                        <button class="btn btn-secondary" id="btn-deselect">Deselect All</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" id="btn-90cw">90° CW</button>
+                        <button class="btn btn-secondary" id="btn-90ccw">90° CCW</button>
+                        <button class="btn btn-secondary" id="btn-180">180°</button>
+                    </div>
+                </div>
+                <div id="thumb-grid"></div>
+            </div>
+            <button class="btn btn-primary" id="btn-process" disabled>Rotate Pages</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>Rotation Complete</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div id="download-area"></div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+
+    <script src="../libs/pdf-lib.min.js"></script>
+    <script src="../libs/pdf.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let currentFile = null;
+            let selectedPages = [];
+            let degrees = 90;
+            let preview = null;
+            const btnProcess = document.getElementById('btn-process');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+
+            document.getElementById('btn-90cw').addEventListener('click', function () { degrees = 90; showToast('Rotation set to 90° clockwise', 'info'); });
+            document.getElementById('btn-90ccw').addEventListener('click', function () { degrees = 270; showToast('Rotation set to 90° counter-clockwise', 'info'); });
+            document.getElementById('btn-180').addEventListener('click', function () { degrees = 180; showToast('Rotation set to 180°', 'info'); });
+
+            createDropzone({
+                container: document.getElementById('dropzone-area'),
+                accept: '.pdf', multiple: false, label: 'Drop a PDF file',
+                onFiles: async function (files) {
+                    if (!files.length) return;
+                    currentFile = files[0];
+                    document.getElementById('page-preview').style.display = 'block';
+                    preview = await createPagePreview(document.getElementById('thumb-grid'), currentFile, {
+                        selectable: true,
+                        onSelect: function (sel) { selectedPages = sel; btnProcess.disabled = sel.length === 0; }
+                    });
+                    document.getElementById('btn-select-all').addEventListener('click', function () { preview.selectAll(); selectedPages = preview.getSelected(); btnProcess.disabled = false; });
+                    document.getElementById('btn-deselect').addEventListener('click', function () { preview.deselectAll(); selectedPages = []; btnProcess.disabled = true; });
+                }
+            });
+
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show(); progress.update(20, 'Rotating pages...');
+                    const bytes = new Uint8Array(await currentFile.arrayBuffer());
+                    const doc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true });
+                    const pages = doc.getPages();
+                    selectedPages.forEach(function (num) {
+                        if (num >= 1 && num <= pages.length) {
+                            var p = pages[num - 1];
+                            p.setRotation(PDFLib.degrees(p.getRotation().angle + degrees));
+                        }
+                    });
+                    progress.update(80, 'Saving...');
+                    var blob = await savePDF(doc);
+                    progress.update(100, 'Done!');
+                    document.getElementById('results-info').textContent = selectedPages.length + ' pages rotated • ' + formatFileSize(blob.size);
+                    document.getElementById('results-area').classList.add('active');
+                    var da = document.getElementById('download-area'); da.innerHTML = '';
+                    createDownloadButton(blob, 'rotated.pdf', da);
+                    showToast('Pages rotated!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+        })();
+    </script>
+</body>
+
+</html>

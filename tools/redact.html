@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redact PDF — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+    <style>
+        .redact-canvas-wrap {
+            position: relative;
+            display: inline-block;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .redact-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+        }
+
+        .page-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .page-nav button {
+            padding: 0.375rem 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank">GitHub</a></div>
+    </nav>
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Security</span><span class="breadcrumb-sep">›</span><span>Redact
+                PDF</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <rect x="7" y="7" width="10" height="4" fill="currentColor" />
+                </svg></div>
+            <div>
+                <h1>Redact PDF</h1>
+                <p>Draw black rectangles over sensitive areas. Changes are permanent.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div id="dropzone-area"></div>
+            <div id="editor" style="display:none;">
+                <div class="page-nav">
+                    <button class="btn btn-secondary" id="btn-prev">← Prev</button>
+                    <span id="page-indicator">Page 1 of 1</span>
+                    <button class="btn btn-secondary" id="btn-next">Next →</button>
+                    <span style="color:var(--color-text-muted); font-size:0.75rem;">Click &amp; drag to draw redaction
+                        boxes</span>
+                </div>
+                <div class="redact-canvas-wrap" id="canvas-wrap">
+                    <canvas id="page-canvas"></canvas>
+                    <canvas id="overlay-canvas" class="redact-overlay"></canvas>
+                </div>
+                <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+                    <button class="btn btn-secondary" id="btn-clear-page">Clear This Page</button>
+                    <span style="font-size:0.75rem; color:var(--color-text-muted); align-self:center;"
+                        id="region-count">0 redactions</span>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btn-process" disabled>Apply Redactions</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>Redaction Complete</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div id="download-area"></div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+    <script src="../libs/pdf-lib.min.js"></script>
+    <script src="../libs/pdf.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let currentFile = null, totalPages = 0, currentPage = 1;
+            const regions = {}; // { page: [{x,y,w,h,scaleX,scaleY}] }
+            const pageCanvas = document.getElementById('page-canvas');
+            const overlayCanvas = document.getElementById('overlay-canvas');
+            const pageCtx = pageCanvas.getContext('2d');
+            const overlayCtx = overlayCanvas.getContext('2d');
+            const btnProcess = document.getElementById('btn-process');
+            const pageIndicator = document.getElementById('page-indicator');
+            const regionCount = document.getElementById('region-count');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+            let scaleX = 1, scaleY = 1, renderWidth = 0, renderHeight = 0;
+            let drawing = false, startX = 0, startY = 0;
+
+            createDropzone({
+                container: document.getElementById('dropzone-area'), accept: '.pdf', multiple: false,
+                onFiles: async function (files) {
+                    if (!files.length) return;
+                    currentFile = files[0];
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = '../libs/pdf.worker.min.js';
+                    totalPages = await getPageCount(currentFile);
+                    document.getElementById('editor').style.display = 'block';
+                    btnProcess.disabled = false;
+                    await renderCurrentPage();
+                }
+            });
+
+            async function renderCurrentPage() {
+                pageIndicator.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+                const canvas = await renderPage(currentFile, currentPage, 1.5);
+                renderWidth = canvas.width; renderHeight = canvas.height;
+                pageCanvas.width = renderWidth; pageCanvas.height = renderHeight;
+                overlayCanvas.width = renderWidth; overlayCanvas.height = renderHeight;
+                pageCanvas.style.width = overlayCanvas.style.width = Math.min(renderWidth, 700) + 'px';
+                pageCanvas.style.height = overlayCanvas.style.height = 'auto';
+                pageCtx.drawImage(canvas, 0, 0);
+                const dims = await getPageDimensions(currentFile, currentPage);
+                scaleX = dims.width / renderWidth; scaleY = dims.height / renderHeight;
+                redrawOverlay();
+                updateCount();
+            }
+
+            function redrawOverlay() {
+                overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                const rects = regions[currentPage] || [];
+                overlayCtx.fillStyle = 'rgba(0,0,0,0.85)';
+                rects.forEach(function (r) { overlayCtx.fillRect(r.rx, r.ry, r.rw, r.rh); });
+            }
+
+            function updateCount() {
+                let total = 0;
+                Object.values(regions).forEach(function (arr) { total += arr.length; });
+                regionCount.textContent = total + ' redaction' + (total !== 1 ? 's' : '');
+            }
+
+            overlayCanvas.addEventListener('mousedown', function (e) {
+                const rect = overlayCanvas.getBoundingClientRect();
+                const ratio = overlayCanvas.width / rect.width;
+                startX = (e.clientX - rect.left) * ratio;
+                startY = (e.clientY - rect.top) * ratio;
+                drawing = true;
+            });
+            overlayCanvas.addEventListener('mousemove', function (e) {
+                if (!drawing) return;
+                const rect = overlayCanvas.getBoundingClientRect();
+                const ratio = overlayCanvas.width / rect.width;
+                const cx = (e.clientX - rect.left) * ratio;
+                const cy = (e.clientY - rect.top) * ratio;
+                redrawOverlay();
+                overlayCtx.fillStyle = 'rgba(0,0,0,0.75)';
+                overlayCtx.fillRect(startX, startY, cx - startX, cy - startY);
+            });
+            overlayCanvas.addEventListener('mouseup', function (e) {
+                if (!drawing) return;
+                drawing = false;
+                const rect = overlayCanvas.getBoundingClientRect();
+                const ratio = overlayCanvas.width / rect.width;
+                const endX = (e.clientX - rect.left) * ratio;
+                const endY = (e.clientY - rect.top) * ratio;
+                const rx = Math.min(startX, endX), ry = Math.min(startY, endY);
+                const rw = Math.abs(endX - startX), rh = Math.abs(endY - startY);
+                if (rw > 4 && rh > 4) {
+                    if (!regions[currentPage]) regions[currentPage] = [];
+                    regions[currentPage].push({ rx, ry, rw, rh });
+                }
+                redrawOverlay(); updateCount();
+            });
+
+            document.getElementById('btn-prev').addEventListener('click', async function () { if (currentPage > 1) { currentPage--; await renderCurrentPage(); } });
+            document.getElementById('btn-next').addEventListener('click', async function () { if (currentPage < totalPages) { currentPage++; await renderCurrentPage(); } });
+            document.getElementById('btn-clear-page').addEventListener('click', function () { regions[currentPage] = []; redrawOverlay(); updateCount(); });
+
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show(); progress.update(20, 'Applying redactions...');
+                    const doc = await loadPDF(currentFile);
+                    const pages = doc.getPages();
+                    Object.keys(regions).forEach(function (pageNum) {
+                        const page = pages[parseInt(pageNum) - 1];
+                        if (!page) return;
+                        const { height } = page.getSize();
+                        regions[pageNum].forEach(function (r) {
+                            const x = r.rx * scaleX;
+                            const y = height - (r.ry * scaleY) - (r.rh * scaleY);
+                            page.drawRectangle({ x, y, width: r.rw * scaleX, height: r.rh * scaleY, color: PDFLib.rgb(0, 0, 0) });
+                        });
+                    });
+                    progress.update(80, 'Saving...');
+                    const blob = await savePDF(doc); progress.update(100, 'Done!');
+                    let total = 0; Object.values(regions).forEach(function (arr) { total += arr.length; });
+                    document.getElementById('results-info').textContent = total + ' areas redacted • ' + formatFileSize(blob.size);
+                    document.getElementById('results-area').classList.add('active');
+                    const da = document.getElementById('download-area'); da.innerHTML = '';
+                    createDownloadButton(blob, 'redacted.pdf', da);
+                    showToast('Redactions applied!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+        })();
+    </script>
+</body>
+
+</html>

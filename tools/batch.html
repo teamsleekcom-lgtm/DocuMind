@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Processor — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank">GitHub</a></div>
+    </nav>
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Review</span><span class="breadcrumb-sep">›</span><span>Batch
+                Processor</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="2" y="7" width="16" height="14" rx="2" />
+                    <path d="M6 3h16v14" />
+                </svg></div>
+            <div>
+                <h1>Batch Processor</h1>
+                <p>Apply an operation (watermark, rotate, compress) to multiple PDFs at once.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div id="dropzone-area"></div>
+            <div id="file-list-area"></div>
+            <div class="options-panel" id="options" style="display:none;">
+                <h3>Operation</h3>
+                <div class="option-row"><label class="option-label">Apply</label>
+                    <select id="operation">
+                        <option value="watermark">Add Watermark</option>
+                        <option value="rotate90">Rotate 90°</option>
+                        <option value="rotate180">Rotate 180°</option>
+                        <option value="compress">Compress</option>
+                        <option value="unlock">Remove Password</option>
+                    </select>
+                </div>
+                <div id="op-options"></div>
+            </div>
+            <button class="btn btn-primary" id="btn-process" disabled>Process All Files</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>Batch Complete</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div id="download-area"></div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+    <script src="../libs/pdf-lib.min.js"></script>
+    <script src="../libs/pdf.min.js"></script>
+    <script src="../libs/jszip.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let files = [];
+            const btnProcess = document.getElementById('btn-process');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+            const fileListArea = document.getElementById('file-list-area');
+            const opSel = document.getElementById('operation');
+            const opOpts = document.getElementById('op-options');
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '../libs/pdf.worker.min.js';
+
+            const opConfig = {
+                watermark: '<div class="option-row"><label class="option-label">Text</label><input type="text" id="bt-wm-text" value="CONFIDENTIAL"></div><div class="slider-row"><label class="option-label">Opacity</label><input type="range" id="bt-wm-opacity" min="5" max="80" value="30"><span class="slider-value" id="bt-wm-ov">30%</span></div>',
+                rotate90: '', rotate180: '',
+                compress: '<div class="slider-row"><label class="option-label">Quality</label><input type="range" id="bt-quality" min="20" max="95" value="70"><span class="slider-value" id="bt-qv">70%</span></div>',
+                unlock: '<div class="option-row"><label class="option-label">Password</label><input type="password" id="bt-pw" placeholder="Leave blank if no password"></div>'
+            };
+
+            opSel.addEventListener('change', function () {
+                opOpts.innerHTML = opConfig[opSel.value] || '';
+                const wmOp = document.getElementById('bt-wm-opacity');
+                if (wmOp) wmOp.addEventListener('input', function () { document.getElementById('bt-wm-ov').textContent = wmOp.value + '%'; });
+                const qOp = document.getElementById('bt-quality');
+                if (qOp) qOp.addEventListener('input', function () { document.getElementById('bt-qv').textContent = qOp.value + '%'; });
+            });
+
+            function renderList() {
+                createFileList(fileListArea, files, {
+                    removable: true,
+                    onRemove: function (i) { files.splice(i, 1); renderList(); btnProcess.disabled = files.length === 0; if (files.length === 0) document.getElementById('options').style.display = 'none'; }
+                });
+            }
+
+            createDropzone({
+                container: document.getElementById('dropzone-area'), accept: '.pdf', multiple: true,
+                onFiles: function (nf) {
+                    files.push(...nf); renderList();
+                    document.getElementById('options').style.display = 'block';
+                    opOpts.innerHTML = opConfig[opSel.value] || '';
+                    btnProcess.disabled = false;
+                }
+            });
+
+            async function processFile(file, op) {
+                const bytes = new Uint8Array(await file.arrayBuffer());
+                const pw = document.getElementById('bt-pw') ? document.getElementById('bt-pw').value : '';
+                const doc = await PDFLib.PDFDocument.load(bytes, { ignoreEncryption: true, password: pw || undefined });
+                if (op === 'rotate90' || op === 'rotate180') {
+                    const deg = op === 'rotate90' ? 90 : 180;
+                    doc.getPages().forEach(function (p) { p.setRotation(PDFLib.degrees(p.getRotation().angle + deg)); });
+                    return savePDF(doc);
+                }
+                if (op === 'unlock') { return savePDF(doc); }
+                if (op === 'watermark') {
+                    const text = (document.getElementById('bt-wm-text') || {}).value || 'WATERMARK';
+                    const opacity = parseInt((document.getElementById('bt-wm-opacity') || {}).value || 30) / 100;
+                    const font = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+                    doc.getPages().forEach(function (page) {
+                        const { width, height } = page.getSize();
+                        const tw = font.widthOfTextAtSize(text, 48);
+                        page.drawText(text, { x: (width - tw) / 2, y: height / 2, size: 48, font, color: PDFLib.rgb(0.6, 0.6, 0.6), opacity, rotate: PDFLib.degrees(45) });
+                    });
+                    return savePDF(doc);
+                }
+                if (op === 'compress') {
+                    const quality = parseInt((document.getElementById('bt-quality') || {}).value || 70) / 100;
+                    const pdfData = new Uint8Array(await file.arrayBuffer());
+                    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                    const newDoc = await PDFLib.PDFDocument.create();
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i); const vp = page.getViewport({ scale: 1.5 });
+                        const canvas = document.createElement('canvas'); canvas.width = vp.width; canvas.height = vp.height;
+                        await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+                        const iblob = await new Promise(function (r) { canvas.toBlob(r, 'image/jpeg', quality); });
+                        const iab = await iblob.arrayBuffer();
+                        const img = await newDoc.embedJpg(new Uint8Array(iab));
+                        const np = newDoc.addPage([vp.width, vp.height]);
+                        np.drawImage(img, { x: 0, y: 0, width: vp.width, height: vp.height });
+                    }
+                    return savePDF(newDoc);
+                }
+                return savePDF(doc);
+            }
+
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show();
+                    const op = opSel.value;
+                    const zip = new JSZip();
+                    for (let i = 0; i < files.length; i++) {
+                        progress.update((i / files.length) * 90, 'Processing ' + (i + 1) + ' of ' + files.length + '...');
+                        const blob = await processFile(files[i], op);
+                        const ab = await blob.arrayBuffer();
+                        zip.file(files[i].name.replace('.pdf', '_' + op + '.pdf'), ab);
+                    }
+                    progress.update(97, 'Creating ZIP...');
+                    const zipBlob = await zip.generateAsync({ type: 'blob' });
+                    progress.update(100, 'Done!');
+                    document.getElementById('results-info').textContent = files.length + ' files processed • ' + formatFileSize(zipBlob.size);
+                    document.getElementById('results-area').classList.add('active');
+                    const da = document.getElementById('download-area'); da.innerHTML = '';
+                    createDownloadButton(zipBlob, 'batch-output.zip', da);
+                    showToast('Batch complete!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Numbers — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank">GitHub</a></div>
+    </nav>
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Enrich</span><span class="breadcrumb-sep">›</span><span>Page
+                Numbers</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M4 7V4h16v3" />
+                    <path d="M9 20h6" />
+                    <path d="M12 4v16" />
+                </svg></div>
+            <div>
+                <h1>Page Numbers</h1>
+                <p>Add page numbers with custom position and styling.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div id="dropzone-area"></div>
+            <div class="options-panel" id="options" style="display:none;">
+                <h3>Page Number Options</h3>
+                <div class="option-row"><label class="option-label">Position</label>
+                    <select id="pn-position">
+                        <option value="bottom-center">Bottom Center</option>
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="top-center">Top Center</option>
+                        <option value="top-right">Top Right</option>
+                        <option value="top-left">Top Left</option>
+                    </select>
+                </div>
+                <div class="option-row"><label class="option-label">Start At</label><input type="number" id="pn-start"
+                        value="1" min="0"></div>
+                <div class="option-row"><label class="option-label">Prefix</label><input type="text" id="pn-prefix"
+                        placeholder="e.g. Page "></div>
+                <div class="option-row"><label class="option-label">Suffix</label><input type="text" id="pn-suffix"
+                        placeholder="e.g.  of N"></div>
+                <div class="slider-row"><label class="option-label">Font Size</label><input type="range" id="pn-size"
+                        min="6" max="20" value="10"><span class="slider-value" id="pn-size-val">10px</span></div>
+            </div>
+            <button class="btn btn-primary" id="btn-process" disabled>Add Page Numbers</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>Page Numbers Added</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div id="download-area"></div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+    <script src="../libs/pdf-lib.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let currentFile = null;
+            const btnProcess = document.getElementById('btn-process');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+            const sizeSlider = document.getElementById('pn-size');
+            sizeSlider.addEventListener('input', function () { document.getElementById('pn-size-val').textContent = sizeSlider.value + 'px'; });
+            createDropzone({
+                container: document.getElementById('dropzone-area'), accept: '.pdf', multiple: false,
+                onFiles: function (files) { if (files.length) { currentFile = files[0]; document.getElementById('options').style.display = 'block'; btnProcess.disabled = false; } }
+            });
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show(); progress.update(20, 'Adding page numbers...');
+                    const doc = await loadPDF(currentFile);
+                    const pages = doc.getPages();
+                    const font = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+                    const fontSize = parseInt(sizeSlider.value);
+                    const startAt = parseInt(document.getElementById('pn-start').value) || 1;
+                    const prefix = document.getElementById('pn-prefix').value;
+                    const suffix = document.getElementById('pn-suffix').value;
+                    const position = document.getElementById('pn-position').value;
+                    pages.forEach(function (page, i) {
+                        const { width, height } = page.getSize();
+                        const num = prefix + (startAt + i) + suffix;
+                        const tw = font.widthOfTextAtSize(num, fontSize);
+                        let x, y;
+                        if (position.includes('bottom')) y = 20; else y = height - 28;
+                        if (position.includes('center')) x = (width - tw) / 2;
+                        else if (position.includes('right')) x = width - tw - 28;
+                        else x = 28;
+                        page.drawText(num, { x, y, size: fontSize, font, color: PDFLib.rgb(0.3, 0.3, 0.3) });
+                    });
+                    progress.update(80, 'Saving...'); const blob = await savePDF(doc); progress.update(100, 'Done!');
+                    document.getElementById('results-info').textContent = pages.length + ' pages numbered • ' + formatFileSize(blob.size);
+                    document.getElementById('results-area').classList.add('active');
+                    const da = document.getElementById('download-area'); da.innerHTML = '';
+                    createDownloadButton(blob, 'numbered.pdf', da);
+                    showToast('Page numbers added!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+        })();
+    </script>
+</body>
+
+</html>

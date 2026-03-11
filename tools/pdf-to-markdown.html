@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Markdown — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank">GitHub</a></div>
+    </nav>
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Convert</span><span class="breadcrumb-sep">›</span><span>PDF to
+                Markdown</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="M6 8v8l3-3 3 3V8" />
+                    <path d="M18 12h-4l3-3" />
+                </svg></div>
+            <div>
+                <h1>PDF to Markdown</h1>
+                <p>Convert PDF content to structured Markdown format.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div id="dropzone-area"></div>
+            <button class="btn btn-primary" id="btn-process" disabled>Convert to Markdown</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>Markdown Ready</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div class="output-area">
+                    <pre class="text-output" id="md-out"></pre>
+                    <div class="output-actions">
+                        <button class="btn btn-secondary" id="btn-copy">Copy</button>
+                        <div id="download-area"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+    <script src="../libs/pdf.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let currentFile = null;
+            const btnProcess = document.getElementById('btn-process');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+            pdfjsLib.GlobalWorkerOptions.workerSrc = '../libs/pdf.worker.min.js';
+            createDropzone({
+                container: document.getElementById('dropzone-area'), accept: '.pdf', multiple: false,
+                onFiles: function (files) { if (files.length) { currentFile = files[0]; btnProcess.disabled = false; } }
+            });
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show(); progress.update(10, 'Analyzing...');
+                    const data = new Uint8Array(await currentFile.arrayBuffer());
+                    const pdf = await pdfjsLib.getDocument({ data }).promise;
+                    const mdPages = [];
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        progress.update(10 + (i / pdf.numPages) * 85, 'Processing page ' + i + '...');
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        const lines = [];
+                        let lastY = null, lineText = '';
+                        content.items.forEach(function (item) {
+                            const y = Math.round(item.transform[5]);
+                            if (lastY !== null && Math.abs(y - lastY) > 3) {
+                                if (lineText.trim()) {
+                                    const h = item.height || 0;
+                                    if (h > 18) lines.push('# ' + lineText.trim());
+                                    else if (h > 14) lines.push('## ' + lineText.trim());
+                                    else lines.push(lineText.trim());
+                                }
+                                lineText = '';
+                            }
+                            lineText += item.str;
+                            lastY = y;
+                        });
+                        if (lineText.trim()) lines.push(lineText.trim());
+                        mdPages.push(lines.join('\n'));
+                    }
+                    const md = mdPages.join('\n\n---\n\n');
+                    progress.update(100, 'Done!');
+                    document.getElementById('md-out').textContent = md;
+                    document.getElementById('results-info').textContent = pdf.numPages + ' pages converted';
+                    document.getElementById('results-area').classList.add('active');
+                    const blob = new Blob([md], { type: 'text/markdown' });
+                    const da = document.getElementById('download-area'); da.innerHTML = '';
+                    createDownloadButton(blob, 'document.md', da);
+                    showToast('Converted to Markdown!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+            document.getElementById('btn-copy').addEventListener('click', function () {
+                navigator.clipboard.writeText(document.getElementById('md-out').textContent).then(function () { showToast('Copied!', 'success'); });
+            });
+        })();
+    </script>
+</body>
+
+</html>

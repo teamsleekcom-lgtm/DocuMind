@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watermark PDF — DocuMind</title>
+    <link rel="stylesheet" href="../styles/global.css">
+    <link rel="stylesheet" href="../styles/components.css">
+    <link rel="stylesheet" href="../styles/tools.css">
+</head>
+
+<body>
+    <nav class="nav"><a href="../index.html" class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>DocuMind</a>
+        <div class="nav-links"><a href="https://github.com" class="nav-link" target="_blank">GitHub</a></div>
+    </nav>
+    <div class="tool-page">
+        <div class="breadcrumb"><a href="../index.html">Home</a><span
+                class="breadcrumb-sep">›</span><span>Enrich</span><span
+                class="breadcrumb-sep">›</span><span>Watermark</span></div>
+        <div class="tool-header">
+            <div class="tool-header-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                </svg></div>
+            <div>
+                <h1>Watermark</h1>
+                <p>Add text or image watermarks to every page.</p>
+            </div>
+        </div>
+        <div class="tool-main">
+            <div id="dropzone-area"></div>
+            <div class="options-panel" id="options" style="display:none;">
+                <h3>Watermark Options</h3>
+                <div class="option-row"><label class="option-label">Text</label><input type="text" id="wm-text"
+                        value="CONFIDENTIAL" placeholder="Watermark text"></div>
+                <div class="slider-row"><label class="option-label">Font Size</label><input type="range" id="wm-size"
+                        min="12" max="96" value="48"><span class="slider-value" id="wm-size-val">48</span></div>
+                <div class="slider-row"><label class="option-label">Opacity</label><input type="range" id="wm-opacity"
+                        min="5" max="80" value="30"><span class="slider-value" id="wm-opacity-val">30%</span></div>
+                <div class="option-row"><label class="option-label">Angle</label>
+                    <select id="wm-angle">
+                        <option value="0">Horizontal (0°)</option>
+                        <option value="45" selected>Diagonal (45°)</option>
+                        <option value="90">Vertical (90°)</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btn-process" disabled>Add Watermark</button>
+            <div id="progress-area"></div>
+            <div class="results" id="results-area">
+                <div class="results-summary">
+                    <div class="results-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg></div>
+                    <div class="results-text">
+                        <h3>Watermark Added</h3>
+                        <p id="results-info"></p>
+                    </div>
+                </div>
+                <div id="download-area"></div>
+            </div>
+        </div>
+    </div>
+    <footer class="footer">
+        <div class="container">
+            <p>All processing happens in your browser. Your files never leave your device.</p>
+        </div>
+    </footer>
+    <script src="../libs/pdf-lib.min.js"></script>
+    <script src="../core/utils.js"></script>
+    <script src="../core/pdf-engine.js"></script>
+    <script src="../core/ui-components.js"></script>
+    <script>
+        (function () {
+            let currentFile = null;
+            const btnProcess = document.getElementById('btn-process');
+            const progress = createProgressBar(document.getElementById('progress-area'));
+            const sizeSlider = document.getElementById('wm-size');
+            const opacitySlider = document.getElementById('wm-opacity');
+            sizeSlider.addEventListener('input', function () { document.getElementById('wm-size-val').textContent = sizeSlider.value; });
+            opacitySlider.addEventListener('input', function () { document.getElementById('wm-opacity-val').textContent = opacitySlider.value + '%'; });
+            createDropzone({
+                container: document.getElementById('dropzone-area'), accept: '.pdf', multiple: false,
+                onFiles: function (files) { if (files.length) { currentFile = files[0]; document.getElementById('options').style.display = 'block'; btnProcess.disabled = false; } }
+            });
+            btnProcess.addEventListener('click', async function () {
+                try {
+                    btnProcess.disabled = true; progress.show(); progress.update(20, 'Adding watermark...');
+                    const doc = await loadPDF(currentFile);
+                    const pages = doc.getPages();
+                    const font = await doc.embedFont(PDFLib.StandardFonts.Helvetica);
+                    const text = document.getElementById('wm-text').value || 'WATERMARK';
+                    const fontSize = parseInt(sizeSlider.value);
+                    const opacity = parseInt(opacitySlider.value) / 100;
+                    const angle = parseInt(document.getElementById('wm-angle').value);
+                    pages.forEach(function (page) {
+                        const { width, height } = page.getSize();
+                        const tw = font.widthOfTextAtSize(text, fontSize);
+                        page.drawText(text, {
+                            x: (width - tw) / 2, y: height / 2,
+                            size: fontSize, font, color: PDFLib.rgb(0.6, 0.6, 0.6),
+                            opacity, rotate: PDFLib.degrees(angle)
+                        });
+                    });
+                    progress.update(80, 'Saving...'); const blob = await savePDF(doc); progress.update(100, 'Done!');
+                    document.getElementById('results-info').textContent = pages.length + ' pages watermarked • ' + formatFileSize(blob.size);
+                    document.getElementById('results-area').classList.add('active');
+                    const da = document.getElementById('download-area'); da.innerHTML = '';
+                    createDownloadButton(blob, 'watermarked.pdf', da);
+                    showToast('Watermark added!', 'success');
+                } catch (e) { showToast('Error: ' + e.message, 'error'); }
+                finally { progress.hide(); btnProcess.disabled = false; }
+            });
+        })();
+    </script>
+</body>
+
+</html>
