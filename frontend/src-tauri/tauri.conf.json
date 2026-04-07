@@ -69,7 +69,7 @@
         ],
         "linux": {
             "deb": {
-                "desktopTemplate": "stirling-pdf.desktop"
+                "desktopTemplate": "documind.desktop"
             }
         },
         "windows": {
@@ -103,9 +103,17 @@
         "deep-link": {
             "desktop": {
                 "schemes": [
-                    "stirlingpdf"
+                    "documind"
                 ]
             }
+        },
+        "updater": {
+            "active": true,
+            "endpoints": [
+                "https://documind-hazel.vercel.app/api/update/latest.json"
+            ],
+            "dialog": false,
+            "pubkey": "DWkkW8Krk...placeholder...replace_with_real_key"
         }
     }
 }

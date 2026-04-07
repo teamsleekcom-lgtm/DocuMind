@@ -12,7 +12,7 @@ DocuMind is a powerful, local-first PDF processing application. Built for privac
 
 ## Getting Started
 
-1. Download the latest release for your operating system from our [Landing Page](https://documind-landing.vercel.app).
+1. Download the latest release for your operating system from our [Landing Page](https://documind-hazel.vercel.app/).
 2. Install and launch DocuMind.
 3. On first launch, the application will initialize its local PDF engine.
 4. Drag and drop your PDFs and start processing!
