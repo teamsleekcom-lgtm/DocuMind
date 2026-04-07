@@ -116,7 +116,7 @@ fi
 
 echo ""
 echo -e "${YELLOW}▶ Starting Stirling PDF...${NC}"
-docker-compose -f docker-compose-keycloak-oauth.yml up "${COMPOSE_UP_ARGS[@]}" stirling-pdf-oauth
+docker-compose -f docker-compose-keycloak-oauth.yml up "${COMPOSE_UP_ARGS[@]}" DocuMind-oauth
 
 echo ""
 echo -e "${YELLOW}▶ Waiting for Stirling PDF...${NC}"

@@ -355,7 +355,7 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_PUBLIC_URL: ${{ secrets.MAVEN_PUBLIC_URL }}
           DISABLE_ADDITIONAL_FEATURES: false
-          STIRLING_PDF_DESKTOP_UI: true
+          DOCUMIND_DESKTOP_UI: true
 
       - name: Check for license compatibility issues
         run: |

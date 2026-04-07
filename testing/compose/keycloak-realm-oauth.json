@@ -79,7 +79,7 @@
   },
   "clients": [
     {
-      "clientId": "stirling-pdf-client",
+      "clientId": "DocuMind-client",
       "name": "Stirling PDF OAuth2 Client",
       "description": "OAuth2/OIDC client for Stirling PDF testing",
       "rootUrl": "http://localhost:8080",
@@ -91,12 +91,12 @@
       "redirectUris": [
         "http://localhost:8080/*",
         "http://localhost:8080/login/oauth2/code/keycloak",
-        "http://stirling-pdf-oauth:8080/*",
-        "http://stirling-pdf-oauth:8080/login/oauth2/code/keycloak"
+        "http://DocuMind-oauth:8080/*",
+        "http://DocuMind-oauth:8080/login/oauth2/code/keycloak"
       ],
       "webOrigins": [
         "http://localhost:8080",
-        "http://stirling-pdf-oauth:8080"
+        "http://DocuMind-oauth:8080"
       ],
       "bearerOnly": false,
       "consentRequired": false,

@@ -45,7 +45,7 @@ jobs:
           gradle-version: 9.3.1
 
       - name: Generate Swagger documentation
-        run: ./gradlew :stirling-pdf:generateOpenApiDocs
+        run: ./gradlew :DocuMind:generateOpenApiDocs
 
       - name: Upload Swagger Documentation to SwaggerHub
         run: ./gradlew swaggerhubUpload
@@ -66,7 +66,7 @@ jobs:
 
       - name: Set API version as published and default on SwaggerHub
         run: |
-          curl -X PUT -H "Authorization: ${SWAGGERHUB_API_KEY}" "https://api.swaggerhub.com/apis/${SWAGGERHUB_USER}/Stirling-PDF/${{ steps.versionNumber.outputs.versionNumber }}/settings/lifecycle" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{\"published\":true,\"default\":true}"
+          curl -X PUT -H "Authorization: ${SWAGGERHUB_API_KEY}" "https://api.swaggerhub.com/apis/${SWAGGERHUB_USER}/DocuMind/${{ steps.versionNumber.outputs.versionNumber }}/settings/lifecycle" -H  "accept: application/json" -H  "Content-Type: application/json" -d "{\"published\":true,\"default\":true}"
         env:
           SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_API_KEY }}
           SWAGGERHUB_USER: "Frooodle"

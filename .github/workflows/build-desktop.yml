@@ -50,14 +50,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
 
-      - name: build Stirling-PDF Backend
+      - name: build DocuMind Backend
         run: ./gradlew clean build -x test
 
       - name: prepare Backend Artifact
         shell: bash
         run: |
           mkdir -p frontend/src-tauri/binaries
-          cp build/libs/Stirling-PDF-*.jar frontend/src-tauri/binaries/stirling-pdf.jar
+          cp build/libs/DocuMind-*.jar frontend/src-tauri/binaries/DocuMind.jar
 
       - name: install Frontend dependencies
         run: cd frontend && npm install

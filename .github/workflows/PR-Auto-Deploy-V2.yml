@@ -231,8 +231,8 @@ jobs:
           context: .
           file: ./docker/embedded/Dockerfile
           push: true
-          cache-from: type=gha,scope=stirling-pdf-latest
-          cache-to: type=gha,mode=max,scope=stirling-pdf-latest
+          cache-from: type=gha,scope=DocuMind-latest
+          cache-to: type=gha,mode=max,scope=DocuMind-latest
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/test:v2-${{ steps.commit-hash.outputs.app_short }}
           build-args: VERSION_TAG=v2-alpha
           platforms: linux/amd64
@@ -253,8 +253,8 @@ jobs:
           cat > docker-compose.yml << EOF
           version: '3.3'
           services:
-            stirling-pdf-v2:
-              container_name: stirling-pdf-v2-pr-${{ needs.check-pr.outputs.pr_number }}
+            DocuMind-v2:
+              container_name: DocuMind-v2-pr-${{ needs.check-pr.outputs.pr_number }}
               image: ${{ secrets.DOCKER_HUB_USERNAME }}/test:v2-${{ steps.commit-hash.outputs.app_short }}
               ports:
                 - "${V2_PORT}:8080"
@@ -268,7 +268,7 @@ jobs:
                 SECURITY_INITIALLOGIN_USERNAME: "${{ secrets.TEST_LOGIN_USERNAME }}"
                 SECURITY_INITIALLOGIN_PASSWORD: "${{ secrets.TEST_LOGIN_PASSWORD }}"
                 SYSTEM_DEFAULTLOCALE: en-GB
-                UI_APPNAME: "Stirling-PDF V2 PR#${{ needs.check-pr.outputs.pr_number }}"
+                UI_APPNAME: "DocuMind V2 PR#${{ needs.check-pr.outputs.pr_number }}"
                 UI_HOMEDESCRIPTION: "V2 PR#${{ needs.check-pr.outputs.pr_number }} - Embedded Architecture"
                 UI_APPNAMENAVBAR: "V2 PR#${{ needs.check-pr.outputs.pr_number }}"
                 SYSTEM_MAXFILESIZE: "100"
@@ -427,7 +427,7 @@ jobs:
               rm -rf /stirling/V2-PR-${{ github.event.pull_request.number }}
 
               # Clean up V2 container by name (in case compose cleanup missed it)
-              docker rm -f stirling-pdf-v2-pr-${{ github.event.pull_request.number }} || true
+              docker rm -f DocuMind-v2-pr-${{ github.event.pull_request.number }} || true
 
               echo "V2 cleanup completed"
             else

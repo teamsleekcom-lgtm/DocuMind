@@ -1,9 +1,9 @@
 services:
-  stirling-pdf:
+  DocuMind:
     build:
       context: ../..
       dockerfile: docker/embedded/Dockerfile
-    container_name: Stirling-PDF-Security
+    container_name: DocuMind-Security
     restart: unless-stopped
     deploy:
       resources:
@@ -24,9 +24,9 @@ services:
       DISABLE_ADDITIONAL_FEATURES: "false"
       SECURITY_ENABLELOGIN: "false"
       SYSTEM_DEFAULTLOCALE: en-US
-      UI_APPNAME: Stirling-PDF
-      UI_HOMEDESCRIPTION: Demo site for Stirling-PDF Latest with Security
-      UI_APPNAMENAVBAR: Stirling-PDF Latest
+      UI_APPNAME: DocuMind
+      UI_HOMEDESCRIPTION: Demo site for DocuMind Latest with Security
+      UI_APPNAMENAVBAR: DocuMind Latest
       SYSTEM_MAXFILESIZE: "100"
       METRICS_ENABLED: "true"
       SYSTEM_GOOGLEVISIBILITY: "true"

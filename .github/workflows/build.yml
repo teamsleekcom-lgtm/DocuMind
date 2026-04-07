@@ -170,7 +170,7 @@ jobs:
           cache-disabled: true
 
       - name: Generate OpenAPI documentation
-        run: ./gradlew :stirling-pdf:generateOpenApiDocs
+        run: ./gradlew :DocuMind:generateOpenApiDocs
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
@@ -430,13 +430,13 @@ jobs:
         include:
           - docker-rev: docker/embedded/Dockerfile
             artifact-suffix: Dockerfile
-            cache-scope: stirling-pdf-latest
+            cache-scope: DocuMind-latest
           - docker-rev: docker/embedded/Dockerfile.ultra-lite
             artifact-suffix: Dockerfile.ultra-lite
-            cache-scope: stirling-pdf-ultra-lite
+            cache-scope: DocuMind-ultra-lite
           - docker-rev: docker/embedded/Dockerfile.fat
             artifact-suffix: Dockerfile.fat
-            cache-scope: stirling-pdf-fat
+            cache-scope: DocuMind-fat
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
@@ -492,7 +492,7 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_PUBLIC_URL: ${{ secrets.MAVEN_PUBLIC_URL }}
           DISABLE_ADDITIONAL_FEATURES: true
-          STIRLING_PDF_DESKTOP_UI: false
+          DOCUMIND_DESKTOP_UI: false
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
@@ -504,16 +504,16 @@ jobs:
       - name: Build base image locally (PR base change only)
         if: github.event_name == 'pull_request' && needs.files-changed.outputs.docker-base == 'true'
         run: |
-          docker build -t stirling-pdf-base:pr-test -f docker/base/Dockerfile docker/base
+          docker build -t DocuMind-base:pr-test -f docker/base/Dockerfile docker/base
 
       - name: Set base image and platform for this build
         id: build-params
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ] && [ "${{ needs.files-changed.outputs.docker-base }}" == "true" ]; then
-            echo "base_image=stirling-pdf-base:pr-test" >> $GITHUB_OUTPUT
+            echo "base_image=DocuMind-base:pr-test" >> $GITHUB_OUTPUT
             echo "platforms=linux/amd64" >> $GITHUB_OUTPUT
           else
-            echo "base_image=stirlingtools/stirling-pdf-base:latest" >> $GITHUB_OUTPUT
+            echo "base_image=stirlingtools/DocuMind-base:latest" >> $GITHUB_OUTPUT
             echo "platforms=linux/amd64,linux/arm64/v8" >> $GITHUB_OUTPUT
           fi
 

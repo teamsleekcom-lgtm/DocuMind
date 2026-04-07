@@ -72,8 +72,8 @@ jobs:
           context: .
           file: ./docker/embedded/Dockerfile
           push: true
-          cache-from: type=gha,scope=stirling-pdf-latest
-          cache-to: type=gha,mode=max,scope=stirling-pdf-latest
+          cache-from: type=gha,scope=DocuMind-latest
+          cache-to: type=gha,mode=max,scope=DocuMind-latest
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/test:test-${{ github.sha }}
           build-args: VERSION_TAG=${{ steps.versionNumber.outputs.versionNumber }}
           platforms: linux/amd64
@@ -89,8 +89,8 @@ jobs:
           cat > docker-compose.yml << EOF
           version: '3.3'
           services:
-            stirling-pdf:
-              container_name: stirling-pdf-test-${{ github.sha }}
+            DocuMind:
+              container_name: DocuMind-test-${{ github.sha }}
               image: ${{ secrets.DOCKER_HUB_USERNAME }}/test:test-${{ github.sha }}
               ports:
                 - "1337:8080"
@@ -102,7 +102,7 @@ jobs:
                 DISABLE_ADDITIONAL_FEATURES: "true"
                 SECURITY_ENABLELOGIN: "false"
                 SYSTEM_DEFAULTLOCALE: en-GB
-                UI_APPNAME: "Stirling-PDF Test"
+                UI_APPNAME: "DocuMind Test"
                 UI_HOMEDESCRIPTION: "Test Deployment"
                 UI_APPNAMENAVBAR: "Test"
                 SYSTEM_MAXFILESIZE: "100"

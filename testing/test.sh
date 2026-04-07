@@ -11,7 +11,7 @@ usage() {
     echo "Examples:"
     echo "  $0                                    # Run all tests"
     echo "  $0 --rerun-failed                     # Rerun tests that failed previously"
-    echo "  $0 --rerun \"Stirling-PDF-Regression Stirling-PDF-Security-Fat-with-login,Webpage-Accessibility-full\""
+    echo "  $0 --rerun \"DocuMind-Regression DocuMind-Security-Fat-with-login,Webpage-Accessibility-full\""
     exit 0
 }
 
@@ -240,10 +240,10 @@ prepare_base_image() {
         echo "Docker base files changed — building base image locally..."
         gha_group "Build: Base image (local)"
         if docker build -f "$PROJECT_ROOT/docker/base/Dockerfile" \
-            -t stirling-pdf-base:local \
+            -t DocuMind-base:local \
             "$PROJECT_ROOT/docker/base"; then
-            echo "✓ Built base image locally: stirling-pdf-base:local"
-            BASE_IMAGE_ARG="--build-arg BASE_IMAGE=stirling-pdf-base:local"
+            echo "✓ Built base image locally: DocuMind-base:local"
+            BASE_IMAGE_ARG="--build-arg BASE_IMAGE=DocuMind-base:local"
         else
             echo "ERROR: Failed to build base image"
             gha_endgroup
@@ -335,13 +335,13 @@ capture_file_list() {
         -not -path '*/home/stirlingpdfuser/.config/calibre/*' \
         -not -path '*/home/stirlingpdfuser/.java/fonts/*' \
         -not -path '*/home/stirlingpdfuser/.pdfbox.cache' \
-        -not -path '*/tmp/stirling-pdf/PDFBox*' \
-        -not -path '*/tmp/stirling-pdf/hsperfdata_stirlingpdfuser/*' \
+        -not -path '*/tmp/DocuMind/PDFBox*' \
+        -not -path '*/tmp/DocuMind/hsperfdata_stirlingpdfuser/*' \
         -not -path '*/tmp/hsperfdata_stirlingpdfuser/*' \
         -not -path '*/tmp/hsperfdata_root/*' \
-        -not -path '*/tmp/stirling-pdf/jetty-*/*' \
-        -not -path '*/tmp/stirling-pdf/lu*' \
-        -not -path '*/tmp/stirling-pdf/tmp*' \
+        -not -path '*/tmp/DocuMind/jetty-*/*' \
+        -not -path '*/tmp/DocuMind/lu*' \
+        -not -path '*/tmp/DocuMind/tmp*' \
         -not -path '/tmp/lu*' \
         -not -path '*/tmp/*/user/registrymodifications.xcu' \
         -not -path '/app/stirling.aot' \
@@ -369,10 +369,10 @@ capture_file_list() {
             -not -path '*/tmp/PDFBox*' \
             -not -path '*/tmp/hsperfdata_stirlingpdfuser/*' \
             -not -path '*/tmp/hsperfdata_root/*' \
-            -not -path '*/tmp/stirling-pdf/hsperfdata_stirlingpdfuser/*' \
-            -not -path '*/tmp/stirling-pdf/jetty-*/*' \
-            -not -path '*/tmp/stirling-pdf/lu*' \
-            -not -path '*/tmp/stirling-pdf/tmp*' \
+            -not -path '*/tmp/DocuMind/hsperfdata_stirlingpdfuser/*' \
+            -not -path '*/tmp/DocuMind/jetty-*/*' \
+            -not -path '*/tmp/DocuMind/lu*' \
+            -not -path '*/tmp/DocuMind/tmp*' \
             -not -path '*/tmp/lu*' \
             -not -path '*/tmp/tmp*' \
             -not -path '/app/stirling.aot' \
@@ -685,9 +685,9 @@ main() {
     # 1. Ultra-Lite (no additional features)
     # ==================================================================
     # Check if any ultra-lite tests need to run before building
-    if should_run_test "Stirling-PDF-Ultra-Lite" || \
+    if should_run_test "DocuMind-Ultra-Lite" || \
        should_run_test "Webpage-Accessibility-lite" || \
-       should_run_test "Stirling-PDF-Ultra-Lite-Version-Check"; then
+       should_run_test "DocuMind-Ultra-Lite-Version-Check"; then
 
         gha_group "Build: Ultra-Lite (Gradle + Docker)"
         export DISABLE_ADDITIONAL_FEATURES=true
@@ -707,13 +707,13 @@ main() {
         # Build Ultra-Lite image with embedded frontend (matching docker-compose-latest-ultra-lite.yml)
         echo "Building ultra-lite image for tests that require it..."
         if [ -n "${ACTIONS_RUNTIME_TOKEN}" ] && { [ -n "${ACTIONS_RESULTS_URL}" ] || [ -n "${ACTIONS_CACHE_URL}" ]; }; then
-            DOCKER_CACHE_ARGS_ULTRA_LITE="--cache-from type=gha,scope=stirling-pdf-ultra-lite --cache-to type=gha,mode=max,scope=stirling-pdf-ultra-lite"
+            DOCKER_CACHE_ARGS_ULTRA_LITE="--cache-from type=gha,scope=DocuMind-ultra-lite --cache-to type=gha,mode=max,scope=DocuMind-ultra-lite"
         else
             DOCKER_CACHE_ARGS_ULTRA_LITE=""
         fi
         local ultra_lite_build_log="$REPORT_DIR/Build-Ultra-Lite-Docker.build.log"
         if ! docker buildx build --build-arg VERSION_TAG=alpha \
-            -t docker.stirlingpdf.com/stirlingtools/stirling-pdf:ultra-lite \
+            -t docker.stirlingpdf.com/stirlingtools/DocuMind:ultra-lite \
             -f ./docker/embedded/Dockerfile.ultra-lite \
             --load \
             ${DOCKER_CACHE_ARGS_ULTRA_LITE} . 2>&1 | tee "$ultra_lite_build_log"; then
@@ -728,7 +728,7 @@ main() {
     fi
 
     # Test Ultra-Lite configuration
-    run_tests "Stirling-PDF-Ultra-Lite" "./docker/embedded/compose/docker-compose-latest-ultra-lite.yml"
+    run_tests "DocuMind-Ultra-Lite" "./docker/embedded/compose/docker-compose-latest-ultra-lite.yml"
 
     if should_run_test "Webpage-Accessibility-lite"; then
         start_test_timer "Webpage-Accessibility-lite"
@@ -747,18 +747,18 @@ main() {
         stop_test_timer "Webpage-Accessibility-lite"
     fi
 
-    if should_run_test "Stirling-PDF-Ultra-Lite-Version-Check"; then
-        start_test_timer "Stirling-PDF-Ultra-Lite-Version-Check"
+    if should_run_test "DocuMind-Ultra-Lite-Version-Check"; then
+        start_test_timer "DocuMind-Ultra-Lite-Version-Check"
         echo "Testing version verification..."
-        if verify_app_version "Stirling-PDF-Ultra-Lite" "http://localhost:8080"; then
-            passed_tests+=("Stirling-PDF-Ultra-Lite-Version-Check")
-            echo "Version verification passed for Stirling-PDF-Ultra-Lite"
+        if verify_app_version "DocuMind-Ultra-Lite" "http://localhost:8080"; then
+            passed_tests+=("DocuMind-Ultra-Lite-Version-Check")
+            echo "Version verification passed for DocuMind-Ultra-Lite"
         else
-            failed_tests+=("Stirling-PDF-Ultra-Lite-Version-Check")
-            capture_failure_logs "Stirling-PDF-Ultra-Lite-Version-Check" "$CURRENT_CONTAINER"
-            echo "Version verification failed for Stirling-PDF-Ultra-Lite"
+            failed_tests+=("DocuMind-Ultra-Lite-Version-Check")
+            capture_failure_logs "DocuMind-Ultra-Lite-Version-Check" "$CURRENT_CONTAINER"
+            echo "Version verification failed for DocuMind-Ultra-Lite"
         fi
-        stop_test_timer "Stirling-PDF-Ultra-Lite-Version-Check"
+        stop_test_timer "DocuMind-Ultra-Lite-Version-Check"
     fi
 
     docker-compose -f "./docker/embedded/compose/docker-compose-latest-ultra-lite.yml" down -v
@@ -767,14 +767,14 @@ main() {
     # 2. Full Fat + Security
     # ==================================================================
     # Check if any fat image tests need to run before building
-    if should_run_test "Stirling-PDF-Security-Fat" || \
+    if should_run_test "DocuMind-Security-Fat" || \
        should_run_test "Webpage-Accessibility-full" || \
-       should_run_test "Stirling-PDF-Security-Fat-Version-Check" || \
-       should_run_test "Stirling-PDF-Security-Fat-with-login" || \
-       should_run_test "Stirling-PDF-Regression Stirling-PDF-Security-Fat-with-login" || \
-       should_run_test "Stirling-PDF-Fat-Disable-Endpoints" || \
+       should_run_test "DocuMind-Security-Fat-Version-Check" || \
+       should_run_test "DocuMind-Security-Fat-with-login" || \
+       should_run_test "DocuMind-Regression DocuMind-Security-Fat-with-login" || \
+       should_run_test "DocuMind-Fat-Disable-Endpoints" || \
        should_run_test "Disabled-Endpoints" || \
-       should_run_test "Stirling-PDF-Fat-Disable-Endpoints-Version-Check"; then
+       should_run_test "DocuMind-Fat-Disable-Endpoints-Version-Check"; then
 
         gha_group "Build: Fat + Security (Gradle + Docker)"
         export DISABLE_ADDITIONAL_FEATURES=false
@@ -793,14 +793,14 @@ main() {
         # Build Fat (Security) image with embedded frontend (matching all 'fat' compose files)
         echo "Building fat image for tests that require it..."
         if [ -n "${ACTIONS_RUNTIME_TOKEN}" ] && { [ -n "${ACTIONS_RESULTS_URL}" ] || [ -n "${ACTIONS_CACHE_URL}" ]; }; then
-            DOCKER_CACHE_ARGS_FAT="--cache-from type=gha,scope=stirling-pdf-fat --cache-to type=gha,mode=max,scope=stirling-pdf-fat"
+            DOCKER_CACHE_ARGS_FAT="--cache-from type=gha,scope=DocuMind-fat --cache-to type=gha,mode=max,scope=DocuMind-fat"
         else
             DOCKER_CACHE_ARGS_FAT=""
         fi
         local fat_build_log="$REPORT_DIR/Build-Fat-Docker.build.log"
         if ! docker buildx build --build-arg VERSION_TAG=alpha \
             ${BASE_IMAGE_ARG} \
-            -t docker.stirlingpdf.com/stirlingtools/stirling-pdf:fat \
+            -t docker.stirlingpdf.com/stirlingtools/DocuMind:fat \
             -f ./docker/embedded/Dockerfile.fat \
             --load \
             ${DOCKER_CACHE_ARGS_FAT} . 2>&1 | tee "$fat_build_log"; then
@@ -815,7 +815,7 @@ main() {
     fi
 
     # Test fat + security compose
-    run_tests "Stirling-PDF-Security-Fat" "./docker/embedded/compose/docker-compose-latest-fat-security.yml"
+    run_tests "DocuMind-Security-Fat" "./docker/embedded/compose/docker-compose-latest-fat-security.yml"
 
     if should_run_test "Webpage-Accessibility-full"; then
         start_test_timer "Webpage-Accessibility-full"
@@ -834,18 +834,18 @@ main() {
         stop_test_timer "Webpage-Accessibility-full"
     fi
 
-    if should_run_test "Stirling-PDF-Security-Fat-Version-Check"; then
-        start_test_timer "Stirling-PDF-Security-Fat-Version-Check"
+    if should_run_test "DocuMind-Security-Fat-Version-Check"; then
+        start_test_timer "DocuMind-Security-Fat-Version-Check"
         echo "Testing version verification..."
-        if verify_app_version "Stirling-PDF-Security-Fat" "http://localhost:8080"; then
-            passed_tests+=("Stirling-PDF-Security-Fat-Version-Check")
-            echo "Version verification passed for Stirling-PDF-Security-Fat"
+        if verify_app_version "DocuMind-Security-Fat" "http://localhost:8080"; then
+            passed_tests+=("DocuMind-Security-Fat-Version-Check")
+            echo "Version verification passed for DocuMind-Security-Fat"
         else
-            failed_tests+=("Stirling-PDF-Security-Fat-Version-Check")
-            capture_failure_logs "Stirling-PDF-Security-Fat-Version-Check" "$CURRENT_CONTAINER"
-            echo "Version verification failed for Stirling-PDF-Security-Fat"
+            failed_tests+=("DocuMind-Security-Fat-Version-Check")
+            capture_failure_logs "DocuMind-Security-Fat-Version-Check" "$CURRENT_CONTAINER"
+            echo "Version verification failed for DocuMind-Security-Fat"
         fi
-        stop_test_timer "Stirling-PDF-Security-Fat-Version-Check"
+        stop_test_timer "DocuMind-Security-Fat-Version-Check"
     fi
 
     docker-compose -f "./docker/embedded/compose/docker-compose-latest-fat-security.yml" down -v
@@ -853,10 +853,10 @@ main() {
     # ==================================================================
     # 3. Regression test with login (test_cicd.yml)
     # ==================================================================
-    run_tests "Stirling-PDF-Security-Fat-with-login" "./docker/embedded/compose/test_cicd.yml"
+    run_tests "DocuMind-Security-Fat-with-login" "./docker/embedded/compose/test_cicd.yml"
 
     # Only run behave tests if the container started successfully
-    if [[ " ${passed_tests[*]} " =~ "Stirling-PDF-Security-Fat-with-login" ]]; then
+    if [[ " ${passed_tests[*]} " =~ "DocuMind-Security-Fat-with-login" ]]; then
 
         CONTAINER_NAME=$(docker-compose -f "./docker/embedded/compose/test_cicd.yml" ps --format '{{.Names}}' --filter "status=running" | head -n1)
 
@@ -873,7 +873,7 @@ main() {
         CUCUMBER_JUNIT_DIR="$PROJECT_ROOT/testing/cucumber/junit"
         mkdir -p "$CUCUMBER_JUNIT_DIR"
         cd "testing/cucumber"
-        start_test_timer "Stirling-PDF-Regression"
+        start_test_timer "DocuMind-Regression"
 
         # Snapshot docker log line count before behave so we can extract only behave-window logs
         DOCKER_LOG_BEFORE=$(docker logs "$CONTAINER_NAME" 2>&1 | wc -l)
@@ -899,7 +899,7 @@ main() {
 
             if compare_file_lists "$BEFORE_FILE" "$AFTER_FILE" "$DIFF_FILE" "$CONTAINER_NAME"; then
                 echo "No unexpected temporary files found."
-                passed_tests+=("Stirling-PDF-Regression $CONTAINER_NAME")
+                passed_tests+=("DocuMind-Regression $CONTAINER_NAME")
             else
                 echo "WARNING: Unexpected temporary files detected after behave tests!"
 
@@ -931,18 +931,18 @@ main() {
                 cp "$DIFF_FILE" "$REPORT_DIR/" 2>/dev/null || true
                 cp "${DIFF_FILE}.tmp" "$REPORT_DIR/files_diff_tmp_matches.txt" 2>/dev/null || true
 
-                test_failure_logs["Stirling-PDF-Regression-Temp-Files"]="$tempfile_log"
-                failed_tests+=("Stirling-PDF-Regression-Temp-Files")
+                test_failure_logs["DocuMind-Regression-Temp-Files"]="$tempfile_log"
+                failed_tests+=("DocuMind-Regression-Temp-Files")
             fi
-            passed_tests+=("Stirling-PDF-Regression $CONTAINER_NAME")
+            passed_tests+=("DocuMind-Regression $CONTAINER_NAME")
         else
             gha_endgroup
-            failed_tests+=("Stirling-PDF-Regression $CONTAINER_NAME")
+            failed_tests+=("DocuMind-Regression $CONTAINER_NAME")
 
             # Save docker logs from the behave window to a dedicated file
             local cucumber_log="$REPORT_DIR/cucumber-docker-context.log"
             docker logs "$CONTAINER_NAME" 2>&1 | tail -n +"$((DOCKER_LOG_BEFORE + 1))" > "$cucumber_log" 2>/dev/null || true
-            test_failure_logs["Stirling-PDF-Regression"]="$cucumber_log"
+            test_failure_logs["DocuMind-Regression"]="$cucumber_log"
 
             gha_group "Docker logs during behave run: $CONTAINER_NAME"
             tail -100 "$cucumber_log"
@@ -955,14 +955,14 @@ main() {
             capture_file_list "$CONTAINER_NAME" "$AFTER_FILE"
             compare_file_lists "$BEFORE_FILE" "$AFTER_FILE" "$DIFF_FILE" "$CONTAINER_NAME"
         fi
-        stop_test_timer "Stirling-PDF-Regression"
+        stop_test_timer "DocuMind-Regression"
     fi
     docker-compose -f "./docker/embedded/compose/test_cicd.yml" down -v
 
     # ==================================================================
     # 4. Disabled Endpoints Test
     # ==================================================================
-    run_tests "Stirling-PDF-Fat-Disable-Endpoints" "./docker/embedded/compose/docker-compose-latest-fat-endpoints-disabled.yml"
+    run_tests "DocuMind-Fat-Disable-Endpoints" "./docker/embedded/compose/docker-compose-latest-fat-endpoints-disabled.yml"
 
     if should_run_test "Disabled-Endpoints"; then
         start_test_timer "Disabled-Endpoints"
@@ -979,18 +979,18 @@ main() {
         stop_test_timer "Disabled-Endpoints"
     fi
 
-    if should_run_test "Stirling-PDF-Fat-Disable-Endpoints-Version-Check"; then
-        start_test_timer "Stirling-PDF-Fat-Disable-Endpoints-Version-Check"
+    if should_run_test "DocuMind-Fat-Disable-Endpoints-Version-Check"; then
+        start_test_timer "DocuMind-Fat-Disable-Endpoints-Version-Check"
         echo "Testing version verification..."
-        if verify_app_version "Stirling-PDF-Fat-Disable-Endpoints" "http://localhost:8080"; then
-            passed_tests+=("Stirling-PDF-Fat-Disable-Endpoints-Version-Check")
-            echo "Version verification passed for Stirling-PDF-Fat-Disable-Endpoints"
+        if verify_app_version "DocuMind-Fat-Disable-Endpoints" "http://localhost:8080"; then
+            passed_tests+=("DocuMind-Fat-Disable-Endpoints-Version-Check")
+            echo "Version verification passed for DocuMind-Fat-Disable-Endpoints"
         else
-            failed_tests+=("Stirling-PDF-Fat-Disable-Endpoints-Version-Check")
-            capture_failure_logs "Stirling-PDF-Fat-Disable-Endpoints-Version-Check" "$CURRENT_CONTAINER"
-            echo "Version verification failed for Stirling-PDF-Fat-Disable-Endpoints"
+            failed_tests+=("DocuMind-Fat-Disable-Endpoints-Version-Check")
+            capture_failure_logs "DocuMind-Fat-Disable-Endpoints-Version-Check" "$CURRENT_CONTAINER"
+            echo "Version verification failed for DocuMind-Fat-Disable-Endpoints"
         fi
-        stop_test_timer "Stirling-PDF-Fat-Disable-Endpoints-Version-Check"
+        stop_test_timer "DocuMind-Fat-Disable-Endpoints-Version-Check"
     fi
 
     docker-compose -f "./docker/embedded/compose/docker-compose-latest-fat-endpoints-disabled.yml" down -v

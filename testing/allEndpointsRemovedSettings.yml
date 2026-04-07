@@ -94,8 +94,8 @@ premium:
     CustomMetadata:
       autoUpdateMetadata: false
       author: username
-      creator: Stirling-PDF
-      producer: Stirling-PDF
+      creator: DocuMind
+      producer: DocuMind
     googleDrive:
       enabled: false # Enable Google Drive file picker integration
       clientId: "" # Google OAuth 2.0 client ID (obtain from Google Cloud Console)
@@ -188,8 +188,8 @@ system:
     pageFormat: A4 # Page format for converted PDFs: 'keep' (original image dimensions), 'A4' (A4 page size), or 'letter' (US Letter page size). Only applies when convertToPdf is true.
     stretchToFit: false # Whether to stretch images to fill the entire page (may distort aspect ratio). If false, images are centered with preserved aspect ratio. Only applies when convertToPdf is true.
   serverCertificate:
-    enabled: true # Enable server-side certificate for "Sign with Stirling-PDF" option
-    organizationName: Stirling-PDF # Organization name for generated certificates
+    enabled: true # Enable server-side certificate for "Sign with DocuMind" option
+    organizationName: DocuMind # Organization name for generated certificates
     validity: 365 # Certificate validity in days
     regenerateOnStartup: false # Generate new certificate on each startup
   html:
@@ -226,10 +226,10 @@ system:
       soffice: "" # Defaults to /usr/bin/soffice
   fileUploadLimit: "" # Defaults to "". No limit when string is empty. Set a number, between 0 and 999, followed by one of the following strings to set a limit. "KB", "MB", "GB".
   tempFileManagement:
-    baseTmpDir: "" # Defaults to java.io.tmpdir/stirling-pdf
+    baseTmpDir: "" # Defaults to java.io.tmpdir/DocuMind
     libreofficeDir: "" # Defaults to tempFileManagement.baseTmpDir/libreoffice
     systemTempDir: "" # Only used if cleanupSystemTemp is true
-    prefix: stirling-pdf- # Prefix for temp file names
+    prefix: DocuMind- # Prefix for temp file names
     maxAgeHours: 24 # Maximum age in hours before temp files are cleaned up
     cleanupIntervalMinutes: 30 # How often to run cleanup (in minutes)
     startupCleanup: true # Clean up old temp files on startup

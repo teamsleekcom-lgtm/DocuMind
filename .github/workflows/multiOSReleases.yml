@@ -151,15 +151,15 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_PUBLIC_URL: ${{ secrets.MAVEN_PUBLIC_URL }}
           DISABLE_ADDITIONAL_FEATURES: ${{ matrix.variant.disable_security }}
-          STIRLING_PDF_DESKTOP_UI: false
+          DOCUMIND_DESKTOP_UI: false
 
       - name: Rename JAR
         run: |
           echo "Version from determine-matrix: ${{ needs.determine-matrix.outputs.version }}"
-          echo "Looking for: app/core/build/libs/stirling-pdf-${{ needs.determine-matrix.outputs.version }}.jar"
+          echo "Looking for: app/core/build/libs/DocuMind-${{ needs.determine-matrix.outputs.version }}.jar"
           ls -la app/core/build/libs/
           mkdir -p ./jar-dist
-          cp app/core/build/libs/stirling-pdf-${{ needs.determine-matrix.outputs.version }}.jar ./jar-dist/Stirling-PDF${{ matrix.variant.file_suffix }}.jar
+          cp app/core/build/libs/DocuMind-${{ needs.determine-matrix.outputs.version }}.jar ./jar-dist/DocuMind${{ matrix.variant.file_suffix }}.jar
 
       - name: Upload JAR artifacts
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
@@ -224,11 +224,11 @@ jobs:
         shell: bash
         run: |
           chmod +x ./gradlew
-          echo "🔧 Building Stirling-PDF JAR..."
+          echo "🔧 Building DocuMind JAR..."
           ./gradlew build -x spotlessApply -x spotlessCheck -x test -x sonarqube
 
           # Find the built JAR
-          STIRLING_JAR=$(ls app/core/build/libs/stirling-pdf-*.jar | head -n 1)
+          STIRLING_JAR=$(ls app/core/build/libs/DocuMind-*.jar | head -n 1)
           echo "✅ Built JAR: $STIRLING_JAR"
 
           # Create Tauri directories
@@ -462,7 +462,7 @@ jobs:
           $filesToSign = @()
 
           # Main application executable
-          $mainExe = Get-ChildItem -Path "./frontend/src-tauri/target/x86_64-pc-windows-msvc/release" -Filter "stirling-pdf.exe" -File -ErrorAction SilentlyContinue
+          $mainExe = Get-ChildItem -Path "./frontend/src-tauri/target/x86_64-pc-windows-msvc/release" -Filter "DocuMind.exe" -File -ErrorAction SilentlyContinue
           if ($mainExe) { $filesToSign += $mainExe }
 
           # MSI installer
@@ -534,20 +534,20 @@ jobs:
 
           # Find and rename artifacts based on platform
           if [ "${{ matrix.platform }}" = "windows-latest" ]; then
-            find . -name "*.exe" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.exe" \;
-            find . -name "*.msi" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.msi" \;
+            find . -name "*.exe" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.exe" \;
+            find . -name "*.msi" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.msi" \;
           elif [ "${{ matrix.platform }}" = "macos-15" ] || [ "${{ matrix.platform }}" = "macos-15-intel" ]; then
-            find . -name "*.dmg" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.dmg" \;
-            find . -name "*.app" -exec cp -r {} "../../../dist/Stirling-PDF-${{ matrix.name }}.app" \;
+            find . -name "*.dmg" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.dmg" \;
+            find . -name "*.app" -exec cp -r {} "../../../dist/DocuMind-${{ matrix.name }}.app" \;
           else
-            find . -name "*.deb" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.deb" \;
-            find . -name "*.AppImage" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.AppImage" \;
+            find . -name "*.deb" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.deb" \;
+            find . -name "*.AppImage" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.AppImage" \;
           fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: Stirling-PDF-${{ matrix.name }}
+          name: DocuMind-${{ matrix.name }}
           path: ./dist/*
           retention-days: 1
 
@@ -566,7 +566,7 @@ jobs:
       - name: Download all Tauri artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: Stirling-PDF-*
+          pattern: DocuMind-*
           path: ./artifacts/tauri
 
       - name: Download JAR artifact (default)

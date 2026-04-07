@@ -111,8 +111,8 @@ jobs:
           images: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/s-pdf
             ghcr.io/${{ steps.repoowner.outputs.lowercase }}/s-pdf
-            ghcr.io/${{ steps.repoowner.outputs.lowercase }}/stirling-pdf
-            ${{ secrets.DOCKER_HUB_ORG_USERNAME }}/stirling-pdf
+            ghcr.io/${{ steps.repoowner.outputs.lowercase }}/DocuMind
+            ${{ secrets.DOCKER_HUB_ORG_USERNAME }}/DocuMind
           tags: |
             type=raw,value=${{ steps.versionNumber.outputs.versionNumber }},enable=${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/V2-master' }}
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/V2-master' }}
@@ -126,8 +126,8 @@ jobs:
           context: .
           file: ./docker/embedded/Dockerfile
           push: true
-          cache-from: type=gha,scope=stirling-pdf-latest
-          cache-to: type=gha,mode=max,scope=stirling-pdf-latest
+          cache-from: type=gha,scope=DocuMind-latest
+          cache-to: type=gha,mode=max,scope=DocuMind-latest
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
@@ -159,8 +159,8 @@ jobs:
           images: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/s-pdf
             ghcr.io/${{ steps.repoowner.outputs.lowercase }}/s-pdf
-            ghcr.io/${{ steps.repoowner.outputs.lowercase }}/stirling-pdf
-            ${{ secrets.DOCKER_HUB_ORG_USERNAME }}/stirling-pdf
+            ghcr.io/${{ steps.repoowner.outputs.lowercase }}/DocuMind
+            ${{ secrets.DOCKER_HUB_ORG_USERNAME }}/DocuMind
           tags: |
             type=raw,value=${{ steps.versionNumber.outputs.versionNumber }}-fat,enable=${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/V2-master' }}
             type=raw,value=latest-fat,enable=${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/V2-master' }}
@@ -174,8 +174,8 @@ jobs:
           context: .
           file: ./docker/embedded/Dockerfile.fat
           push: true
-          cache-from: type=gha,scope=stirling-pdf-fat
-          cache-to: type=gha,mode=max,scope=stirling-pdf-fat
+          cache-from: type=gha,scope=DocuMind-fat
+          cache-to: type=gha,mode=max,scope=DocuMind-fat
           tags: ${{ steps.meta-fat.outputs.tags }}
           labels: ${{ steps.meta-fat.outputs.labels }}
           build-args: VERSION_TAG=${{ steps.versionNumber.outputs.versionNumber }}
@@ -203,8 +203,8 @@ jobs:
           images: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/s-pdf
             ghcr.io/${{ steps.repoowner.outputs.lowercase }}/s-pdf
-            ghcr.io/${{ steps.repoowner.outputs.lowercase }}/stirling-pdf
-            ${{ secrets.DOCKER_HUB_ORG_USERNAME }}/stirling-pdf
+            ghcr.io/${{ steps.repoowner.outputs.lowercase }}/DocuMind
+            ${{ secrets.DOCKER_HUB_ORG_USERNAME }}/DocuMind
           tags: |
             type=raw,value=${{ steps.versionNumber.outputs.versionNumber }}-ultra-lite,enable=${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/V2-master' }}
             type=raw,value=latest-ultra-lite,enable=${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/V2-master' }}
@@ -218,8 +218,8 @@ jobs:
           context: .
           file: ./docker/embedded/Dockerfile.ultra-lite
           push: true
-          cache-from: type=gha,scope=stirling-pdf-ultra-lite
-          cache-to: type=gha,mode=max,scope=stirling-pdf-ultra-lite
+          cache-from: type=gha,scope=DocuMind-ultra-lite
+          cache-to: type=gha,mode=max,scope=DocuMind-ultra-lite
           tags: ${{ steps.meta-lite.outputs.tags }}
           labels: ${{ steps.meta-lite.outputs.labels }}
           build-args: VERSION_TAG=${{ steps.versionNumber.outputs.versionNumber }}

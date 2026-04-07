@@ -133,12 +133,12 @@ jobs:
         shell: bash
         run: |
           chmod +x ./gradlew
-          echo "🔧 Building Stirling-PDF JAR..."
-          # STIRLING_PDF_DESKTOP_UI=false ./gradlew bootJar --no-daemon
+          echo "🔧 Building DocuMind JAR..."
+          # DOCUMIND_DESKTOP_UI=false ./gradlew bootJar --no-daemon
           ./gradlew build -x spotlessApply -x spotlessCheck -x test -x sonarqube
 
           # Find the built JAR
-          STIRLING_JAR=$(ls app/core/build/libs/stirling-pdf-*.jar | head -n 1)
+          STIRLING_JAR=$(ls app/core/build/libs/DocuMind-*.jar | head -n 1)
           echo "✅ Built JAR: $STIRLING_JAR"
 
           # Create Tauri directories
@@ -434,7 +434,7 @@ jobs:
           $filesToSign = @()
 
           # Main application executable
-          $mainExe = Get-ChildItem -Path "./frontend/src-tauri/target/x86_64-pc-windows-msvc/release" -Filter "stirling-pdf.exe" -File -ErrorAction SilentlyContinue
+          $mainExe = Get-ChildItem -Path "./frontend/src-tauri/target/x86_64-pc-windows-msvc/release" -Filter "DocuMind.exe" -File -ErrorAction SilentlyContinue
           if ($mainExe) { $filesToSign += $mainExe }
 
           # MSI installer
@@ -536,13 +536,13 @@ jobs:
 
           # Find and rename artifacts based on platform
           if [ "${{ matrix.platform }}" = "windows-latest" ]; then
-            find . -name "*.exe" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.exe" \;
-            find . -name "*.msi" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.msi" \;
+            find . -name "*.exe" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.exe" \;
+            find . -name "*.msi" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.msi" \;
           elif [ "${{ matrix.platform }}" = "macos-15" ] || [ "${{ matrix.platform }}" = "macos-15-intel" ]; then
-            find . -name "*.dmg" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.dmg" \;
+            find . -name "*.dmg" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.dmg" \;
           else
-            find . -name "*.deb" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.deb" \;
-            find . -name "*.AppImage" -exec cp {} "../../../dist/Stirling-PDF-${{ matrix.name }}.AppImage" \;
+            find . -name "*.deb" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.deb" \;
+            find . -name "*.AppImage" -exec cp {} "../../../dist/DocuMind-${{ matrix.name }}.AppImage" \;
           fi
 
       - name: Verify Windows Code Signature
@@ -551,8 +551,8 @@ jobs:
         run: |
           Write-Host "Verifying Windows code signatures..."
 
-          $exePath = "./dist/Stirling-PDF-${{ matrix.name }}.exe"
-          $msiPath = "./dist/Stirling-PDF-${{ matrix.name }}.msi"
+          $exePath = "./dist/DocuMind-${{ matrix.name }}.exe"
+          $msiPath = "./dist/DocuMind-${{ matrix.name }}.msi"
 
           $allSigned = $true
           $usingKeyLocker = "${{ env.SM_API_KEY }}" -ne ""
@@ -608,7 +608,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: Stirling-PDF-${{ matrix.name }}
+          name: DocuMind-${{ matrix.name }}
           path: ./dist/*
           retention-days: 7
 
@@ -689,10 +689,10 @@ jobs:
 
             // Map of expected artifact names to display info
             const artifactMap = {
-              'Stirling-PDF-windows-x86_64': { icon: '🪟', platform: 'Windows x64', files: '.exe, .msi' },
-              'Stirling-PDF-macos-aarch64': { icon: '🍎', platform: 'macOS ARM64', files: '.dmg' },
-              'Stirling-PDF-macos-x86_64': { icon: '🍎', platform: 'macOS Intel', files: '.dmg' },
-              'Stirling-PDF-linux-x86_64': { icon: '🐧', platform: 'Linux x64', files: '.deb, .AppImage' }
+              'DocuMind-windows-x86_64': { icon: '🪟', platform: 'Windows x64', files: '.exe, .msi' },
+              'DocuMind-macos-aarch64': { icon: '🍎', platform: 'macOS ARM64', files: '.dmg' },
+              'DocuMind-macos-x86_64': { icon: '🍎', platform: 'macOS Intel', files: '.dmg' },
+              'DocuMind-linux-x86_64': { icon: '🐧', platform: 'Linux x64', files: '.deb, .AppImage' }
             };
 
             let commentBody = `## 📦 Tauri Desktop Builds Ready!\n\n`;

@@ -173,7 +173,7 @@ jobs:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_PUBLIC_URL: ${{ secrets.MAVEN_PUBLIC_URL }}
-          STIRLING_PDF_DESKTOP_UI: false
+          DOCUMIND_DESKTOP_UI: false
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
@@ -190,8 +190,8 @@ jobs:
           context: .
           file: ./docker/embedded/Dockerfile
           push: true
-          cache-from: type=gha,scope=stirling-pdf-latest
-          cache-to: type=gha,mode=max,scope=stirling-pdf-latest
+          cache-from: type=gha,scope=DocuMind-latest
+          cache-to: type=gha,mode=max,scope=DocuMind-latest
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/test:pr-${{ needs.check-comment.outputs.pr_number }}
           build-args: VERSION_TAG=alpha
           platforms: linux/amd64
@@ -235,8 +235,8 @@ jobs:
           cat > docker-compose.yml << EOF
           version: '3.3'
           services:
-            stirling-pdf:
-              container_name: stirling-pdf-pr-${{ needs.check-comment.outputs.pr_number }}
+            DocuMind:
+              container_name: DocuMind-pr-${{ needs.check-comment.outputs.pr_number }}
               image: ${{ secrets.DOCKER_HUB_USERNAME }}/test:pr-${{ needs.check-comment.outputs.pr_number }}
               ports:
                 - "${{ needs.check-comment.outputs.pr_number }}:8080"
@@ -248,8 +248,8 @@ jobs:
                 DISABLE_ADDITIONAL_FEATURES: "${DISABLE_ADDITIONAL_FEATURES}"
                 SECURITY_ENABLELOGIN: "${LOGIN_SECURITY}"
                 SYSTEM_DEFAULTLOCALE: en-GB
-                UI_APPNAME: "Stirling-PDF PR#${{ needs.check-comment.outputs.pr_number }}"
-                UI_HOMEDESCRIPTION: "PR#${{ needs.check-comment.outputs.pr_number }} for Stirling-PDF Latest"
+                UI_APPNAME: "DocuMind PR#${{ needs.check-comment.outputs.pr_number }}"
+                UI_HOMEDESCRIPTION: "PR#${{ needs.check-comment.outputs.pr_number }} for DocuMind Latest"
                 UI_APPNAMENAVBAR: "PR#${{ needs.check-comment.outputs.pr_number }}"
                 SYSTEM_MAXFILESIZE: "100"
                 METRICS_ENABLED: "true"

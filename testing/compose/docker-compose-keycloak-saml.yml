@@ -49,9 +49,9 @@ services:
     networks:
       - stirling-saml-test
 
-  stirling-pdf-saml:
-    container_name: stirling-pdf-saml-test
-    image: docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest
+  DocuMind-saml:
+    container_name: DocuMind-saml-test
+    image: docker.stirlingpdf.com/stirlingtools/DocuMind:latest
     build:
       context: ../..
       dockerfile: docker/embedded/Dockerfile
@@ -87,9 +87,9 @@ services:
       LOGGING_LEVEL_ORG_OPENSAML: DEBUG
       LOGGING_LEVEL_STIRLING_SOFTWARE_PROPRIETARY_SECURITY: DEBUG
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
-      UI_APPNAME: Stirling-PDF SAML Test
+      UI_APPNAME: DocuMind SAML Test
       UI_HOMEDESCRIPTION: Keycloak SAML Test Instance
-      UI_APPNAMENAVBAR: Stirling-PDF SAML
+      UI_APPNAMENAVBAR: DocuMind SAML
       SYSTEM_MAXFILESIZE: "100"
 
       # SAML Configuration (Keycloak)

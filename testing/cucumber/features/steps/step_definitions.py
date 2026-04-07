@@ -521,9 +521,9 @@ def step_pdf_has_bookmarks(context):
     context.files[context.param_name] = open(context.file_name, "rb")
 
 
-@given("the pdf has a Stirling-PDF QR code split marker on page {page_num:d}")
+@given("the pdf has a DocuMind QR code split marker on page {page_num:d}")
 def step_pdf_has_qr_split_marker(context, page_num):
-    """Replace page page_num (1-indexed) with a page containing a Stirling-PDF QR code."""
+    """Replace page page_num (1-indexed) with a page containing a DocuMind QR code."""
     try:
         import qrcode as _qrcode
     except ImportError:
@@ -533,7 +533,7 @@ def step_pdf_has_qr_split_marker(context, page_num):
         )
     reader = PdfReader(context.file_name)
     qr = _qrcode.QRCode(box_size=4, border=2)
-    qr.add_data("https://github.com/Stirling-Tools/Stirling-PDF")
+    qr.add_data("https://github.com/Stirling-Tools/DocuMind")
     qr.make(fit=True)
     qr_img = qr.make_image(fill_color="black", back_color="white")
     qr_bytes = io.BytesIO()

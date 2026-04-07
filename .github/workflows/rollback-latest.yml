@@ -54,8 +54,8 @@ jobs:
           IMAGES=(
             "${DOCKER_HUB_USERNAME}/s-pdf"
             "ghcr.io/${REPO_OWNER}/s-pdf"
-            "ghcr.io/${REPO_OWNER}/stirling-pdf"
-            "${DOCKER_HUB_ORG_USERNAME}/stirling-pdf"
+            "ghcr.io/${REPO_OWNER}/DocuMind"
+            "${DOCKER_HUB_ORG_USERNAME}/DocuMind"
           )
 
           VARIANTS=(

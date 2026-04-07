@@ -126,7 +126,7 @@ PUBLIC_CERT="${SCRIPT_DIR}/saml-public-cert.crt"
 
 if [ ! -f "$PRIVATE_KEY" ] || [ ! -f "$PUBLIC_CERT" ]; then
     openssl req -x509 -newkey rsa:2048 -keyout "$PRIVATE_KEY" -out "$PUBLIC_CERT" \
-        -days 3650 -nodes -subj "/CN=stirling-pdf-saml-sp" >/dev/null 2>&1
+        -days 3650 -nodes -subj "/CN=DocuMind-saml-sp" >/dev/null 2>&1
     echo -e "${GREEN}✓ Generated SAML SP certificates${NC}"
 else
     echo -e "${BLUE}Using existing SAML SP certificates${NC}"
@@ -152,7 +152,7 @@ echo -e "${GREEN}✓ Keycloak SAML certificate updated${NC}"
 
 echo ""
 echo -e "${YELLOW}▶ Starting Stirling PDF...${NC}"
-docker-compose -f docker-compose-keycloak-saml.yml up "${COMPOSE_UP_ARGS[@]}" stirling-pdf-saml
+docker-compose -f docker-compose-keycloak-saml.yml up "${COMPOSE_UP_ARGS[@]}" DocuMind-saml
 
 echo ""
 echo -e "${YELLOW}▶ Waiting for Stirling PDF...${NC}"
