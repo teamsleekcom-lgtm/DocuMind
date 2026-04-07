@@ -5,19 +5,19 @@
     "platforms": {
         "windows-x86_64": {
             "signature": "...",
-            "url": "https://github.com/DocuMind/documind/releases/download/v1.0.0/DocuMind_1.0.0_x64_en-US.msi.zip"
+            "url": "https://github.com/teamsleekcom-lgtm/Stirling-PDF/releases/download/v1.0.0/DocuMind_1.0.0_x64_en-US.msi.zip"
         },
         "darwin-x86_64": {
             "signature": "...",
-            "url": "https://github.com/DocuMind/documind/releases/download/v1.0.0/DocuMind_1.0.0_x64.dmg.tar.gz"
+            "url": "https://github.com/teamsleekcom-lgtm/Stirling-PDF/releases/download/v1.0.0/DocuMind_1.0.0_x64.dmg.tar.gz"
         },
         "darwin-aarch64": {
             "signature": "...",
-            "url": "https://github.com/DocuMind/documind/releases/download/v1.0.0/DocuMind_1.0.0_aarch64.dmg.tar.gz"
+            "url": "https://github.com/teamsleekcom-lgtm/Stirling-PDF/releases/download/v1.0.0/DocuMind_1.0.0_aarch64.dmg.tar.gz"
         },
         "linux-x86_64": {
             "signature": "...",
-            "url": "https://github.com/DocuMind/documind/releases/download/v1.0.0/documind_1.0.0_amd64.AppImage.tar.gz"
+            "url": "https://github.com/teamsleekcom-lgtm/Stirling-PDF/releases/download/v1.0.0/documind_1.0.0_amd64.AppImage.tar.gz"
         }
     }
 }
