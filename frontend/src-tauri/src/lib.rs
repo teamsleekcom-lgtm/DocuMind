@@ -1,4 +1,6 @@
 use tauri::{AppHandle, Emitter, Manager, RunEvent, WindowEvent};
+use tauri::menu::{Menu, MenuItem, Submenu, PredefinedMenuItem, IsChecked};
+use tauri::tray::{TrayIconBuilder, TrayIconEvent, MouseButton, MouseButtonState};
 
 mod utils;
 mod commands;
@@ -63,6 +65,8 @@ pub fn run() {
     .plugin(tauri_plugin_store::Builder::new().build())
     .plugin(tauri_plugin_deep_link::init())
     .plugin(tauri_plugin_notification::init())
+    .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, Some(vec!["--minimized"])))
+    .plugin(tauri_plugin_updater::Builder::new().build())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .manage(AppConnectionState::default())
     .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
@@ -90,6 +94,49 @@ pub fn run() {
     }))
     .setup(|app| {
       add_log("🚀 Tauri app setup started".to_string());
+
+      // Create System Tray Menu
+      let quit_i = MenuItem::with_id(app, "quit", "Quit DocuMind", true, None::<&str>)?;
+      let open_i = MenuItem::with_id(app, "open", "Open DocuMind", true, None::<&str>)?;
+      let check_updates_i = MenuItem::with_id(app, "check_updates", "Check for Updates", true, None::<&str>)?;
+      let start_on_login_i = MenuItem::with_id(app, "start_on_login", "Start on Login", true, None::<&str>)?;
+      let documind_header = MenuItem::with_id(app, "header", "DocuMind", false, None::<&str>)?;
+
+      let tray_menu = Menu::with_items(app, &[
+        &documind_header,
+        &PredefinedMenuItem::separator(app)?,
+        &open_i,
+        &check_updates_i,
+        &PredefinedMenuItem::separator(app)?,
+        &start_on_login_i,
+        &PredefinedMenuItem::separator(app)?,
+        &quit_i,
+      ])?;
+
+      let _tray = TrayIconBuilder::with_id("main_tray")
+        .menu(&tray_menu)
+        .show_menu_on_left_click(false)
+        .on_menu_event(|app, event| {
+          match event.id.as_ref() {
+            "quit" => {
+              app.exit(0);
+            }
+            "open" => {
+              if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+              }
+            }
+            "check_updates" => {
+              let _ = app.emit("check-for-updates", ());
+            }
+            "start_on_login" => {
+              // Toggle logic here
+            }
+            _ => {}
+          }
+        })
+        .build(app)?;
 
       // Process command line arguments on first launch
       let args: Vec<String> = std::env::args().collect();
@@ -123,10 +170,6 @@ pub fn run() {
         });
       }
 
-      if let Err(err) = apply_provisioning_if_present(&app.handle()) {
-        add_log(format!("⚠️ Failed to apply provisioning file: {}", err));
-      }
-
       // Start backend immediately, non-blocking
       let app_handle = app.handle().clone();
 
@@ -135,6 +178,41 @@ pub fn run() {
         let connection_state = app_handle.state::<AppConnectionState>();
         if let Err(e) = commands::backend::start_backend(app_handle.clone(), connection_state).await {
           add_log(format!("⚠️ Backend start failed: {}", e));
+        }
+
+        // Poll backend status
+        let client = reqwest::Client::new();
+        let mut attempts = 0;
+        let max_attempts = 60; // 30 seconds (500ms intervals)
+        
+        while attempts < max_attempts {
+          add_log(format!("🔍 Polling backend status (attempt {}/{})", attempts + 1, max_attempts));
+          match client.get("http://localhost:8080/api/v1/info/status").send().await {
+            Ok(res) if res.status().is_success() => {
+              add_log("✅ Backend is ready!".to_string());
+              break;
+            }
+            _ => {
+              tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+              attempts += 1;
+            }
+          }
+        }
+
+        if attempts < max_attempts {
+          // Dismiss splash and show main window
+          if let Some(splash) = app_handle.get_webview_window("splash") {
+            let _ = splash.close();
+          }
+          if let Some(main) = app_handle.get_webview_window("main") {
+            let _ = main.show();
+            let _ = main.set_focus();
+          }
+          // Also check for updates secretly in background
+          let _ = app_handle.emit("check-for-updates", ());
+        } else {
+          add_log("❌ Backend failed to start within timeout".to_string());
+          // Handle timeout error (e.g., show error in splash or dialog)
         }
       });
 

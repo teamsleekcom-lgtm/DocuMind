@@ -15,7 +15,7 @@ const FIRST_LAUNCH_KEY: &str = "setup_completed";
 const CONNECTION_MODE_KEY: &str = "connection_mode";
 const SERVER_CONFIG_KEY: &str = "server_config";
 const LOCK_CONNECTION_KEY: &str = "lock_connection_mode";
-const PROVISIONING_FILE_NAME: &str = "stirling-provisioning.json";
+const PROVISIONING_FILE_NAME: &str = "documind-provisioning.json";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConnectionConfig {

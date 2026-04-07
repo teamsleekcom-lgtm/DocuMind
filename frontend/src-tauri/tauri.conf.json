@@ -1,8 +1,8 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-    "productName": "Stirling-PDF",
-    "version": "2.9.2",
-    "identifier": "stirling.pdf.dev",
+    "productName": "DocuMind",
+    "version": "1.0.0",
+    "identifier": "app.documind.desktop",
     "build": {
         "frontendDist": "../dist",
         "devUrl": "http://localhost:5173",
@@ -12,18 +12,31 @@
     "app": {
         "windows": [
             {
-                "title": "Stirling-PDF",
+                "label": "main",
+                "title": "DocuMind",
                 "width": 1280,
                 "height": 800,
                 "resizable": true,
                 "fullscreen": false,
+                "visible": false,
                 "additionalBrowserArgs": "--enable-features=CertVerifierBuiltinFeature"
+            },
+            {
+                "label": "splash",
+                "title": "DocuMind Loading",
+                "width": 400,
+                "height": 200,
+                "decorations": false,
+                "center": true,
+                "resizable": false,
+                "alwaysOnTop": true,
+                "url": "/splash.html"
             }
         ]
     },
     "bundle": {
         "active": true,
-        "publisher": "Stirling PDF Inc.",
+        "publisher": "DocuMind Contributors",
         "targets": [
             "deb",
             "rpm",

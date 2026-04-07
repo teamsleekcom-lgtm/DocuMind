@@ -16,7 +16,7 @@ fn reset_starting_flag() {
     *starting_guard = false;
 }
 
-// Extract port number from "Stirling-PDF running on port: PORT" log line
+// Extract port number from "DocuMind running on port: PORT" log line
 fn extract_port_from_running_log(log_line: &str) -> Option<u16> {
     // Look for pattern: "running on port: PORT"
     if let Some(start) = log_line.find("running on port: ") {
@@ -73,8 +73,8 @@ fn find_bundled_jre(resource_dir: &PathBuf) -> Result<PathBuf, String> {
     Ok(java_executable)
 }
 
-// Find the Stirling-PDF JAR file
-fn find_stirling_jar(resource_dir: &PathBuf) -> Result<PathBuf, String> {
+// Find the DocuMind JAR file
+fn find_documind_jar(resource_dir: &PathBuf) -> Result<PathBuf, String> {
     let libs_dir = resource_dir.join("libs");
     let mut jar_files: Vec<_> = std::fs::read_dir(&libs_dir)
         .map_err(|e| {
@@ -85,17 +85,20 @@ fn find_stirling_jar(resource_dir: &PathBuf) -> Result<PathBuf, String> {
         .filter_map(|entry| entry.ok())
         .filter(|entry| {
             let path = entry.path();
-            // Match any .jar file containing "stirling-pdf" (case-insensitive)
+            // Match any .jar file containing "stirling-pdf" or "documind" (case-insensitive)
             path.extension().and_then(|s| s.to_str()).map(|ext| ext.eq_ignore_ascii_case("jar")).unwrap_or(false)
                 && path.file_name()
                     .and_then(|f| f.to_str())
-                    .map(|name| name.to_ascii_lowercase().contains("stirling-pdf"))
+                    .map(|name| {
+                        let n = name.to_ascii_lowercase();
+                        n.contains("stirling-pdf") || n.contains("documind")
+                    })
                     .unwrap_or(false)
         })
         .collect();
 
     if jar_files.is_empty() {
-        let error_msg = "No Stirling-PDF JAR found in libs directory.".to_string();
+        let error_msg = "No DocuMind JAR found in libs directory.".to_string();
         add_log(error_msg.clone());
         return Err(error_msg);
     }
@@ -165,8 +168,8 @@ fn copy_dir_recursive(src: &Path, dest: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-// Create, configure and run the Java command to run Stirling-PDF JAR
-fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &PathBuf) -> Result<(), String> {
+// Create, configure and run the Java command to run DocuMind JAR
+fn run_documind_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &PathBuf) -> Result<(), String> {
     // Get platform-specific application data directory for Tauri mode
     let app_data_dir = app_data_dir();
 
@@ -206,9 +209,9 @@ fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &
     let java_options = vec![
         "-Xmx2g",
         "-DBROWSER_OPEN=false",
-        "-DSTIRLING_PDF_TAURI_MODE=true",
+        "-DDOCUMIND_TAURI_MODE=true",
         &log_path_option,
-        "-Dlogging.file.name=stirling-pdf.log",
+        "-Dlogging.file.name=documind.log",
         "-Dserver.port=0",  // Let OS assign an available port
         "-Dsecurity.enableLogin=false",  // Disable login for desktop mode
         "-Dsecurity.csrfDisabled=true",  // Disable CSRF for desktop mode
@@ -258,9 +261,9 @@ fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &
         .args(java_options)
         .current_dir(&work_dir)  // Set working directory to writable location
         .env("TAURI_PARENT_PID", std::process::id().to_string())
-        .env("STIRLING_PDF_CONFIG_DIR", config_dir.to_str().unwrap())
-        .env("STIRLING_PDF_LOG_DIR", log_dir.to_str().unwrap())
-        .env("STIRLING_PDF_WORK_DIR", work_dir.to_str().unwrap());
+        .env("DOCUMIND_CONFIG_DIR", config_dir.to_str().unwrap())
+        .env("DOCUMIND_LOG_DIR", log_dir.to_str().unwrap())
+        .env("DOCUMIND_WORK_DIR", work_dir.to_str().unwrap());
 
     add_log("⚙️ Starting backend with bundled JRE...".to_string());
 
@@ -301,20 +304,20 @@ fn monitor_backend_output(mut rx: tauri::async_runtime::Receiver<tauri_plugin_sh
                     add_log(format!("📤 Backend: {}", output_str));
 
                     // Look for actual runtime port from web server initialization
-                    // Format: "Stirling-PDF running on port: PORT"
+                    // Format: "DocuMind running on port: PORT"
                     if output_str.contains("running on port:") {
                         _startup_detected = true;
                         if let Some(port) = extract_port_from_running_log(&output_str) {
                             let mut port_guard = BACKEND_PORT.lock().unwrap();
                             *port_guard = Some(port);
-                            add_log(format!("🎉 Backend started on port: {}", port));
+                            add_log(format!("🎉 DocuMind started on port: {}", port));
                             add_log(format!("🔌 Navigate to: http://localhost:{}/", port));
                         }
                     }
 
                     if output_str.contains("Started SPDFApplication") {
                         _startup_detected = true;
-                        add_log(format!("🎉 Backend startup completed: {}", output_str));
+                        add_log(format!("🎉 DocuMind startup completed: {}", output_str));
                     }
                 }
                 tauri_plugin_shell::process::CommandEvent::Stderr(output) => {
@@ -424,8 +427,8 @@ pub async fn start_backend(
         e
     })?;
 
-    // Find the Stirling-PDF JAR
-    let jar_path = find_stirling_jar(&resource_dir).map_err(|e| {
+    // Find the DocuMind JAR
+    let jar_path = find_documind_jar(&resource_dir).map_err(|e| {
         reset_starting_flag();
         e
     })?;
@@ -439,7 +442,7 @@ pub async fn start_backend(
     add_log(format!("📦 Normalized Java path: {:?}", normalized_java_path));
 
     // Create and start the Java command
-    run_stirling_pdf_jar(&app, &normalized_java_path, &normalized_jar_path).map_err(|e| {
+    run_documind_jar(&app, &normalized_java_path, &normalized_jar_path).map_err(|e| {
         reset_starting_flag();
         e
     })?;

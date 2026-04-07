@@ -597,7 +597,7 @@ description = "Configure temporary file storage and cleanup behavior"
 label = "Temp File Management"
 
 [admin.settings.advanced.tempFileManagement.baseTmpDir]
-description = "Base directory for temporary files (leave empty for default: java.io.tmpdir/stirling-pdf)"
+description = "Base directory for temporary files (leave empty for default: java.io.tmpdir/DocuMind)"
 label = "Base Temp Directory"
 
 [admin.settings.advanced.tempFileManagement.cleanupIntervalMinutes]
@@ -877,11 +877,11 @@ description = "Configure optional features and functionality."
 title = "Features"
 
 [admin.settings.features.serverCertificate]
-description = "Configure server-side certificate generation for \"Sign with Stirling-PDF\" functionality"
+description = "Configure server-side certificate generation for \"Sign with DocuMind\" functionality"
 label = "Server Certificate"
 
 [admin.settings.features.serverCertificate.enabled]
-description = "Enable server-side certificate for \"Sign with Stirling-PDF\" option"
+description = "Enable server-side certificate for \"Sign with DocuMind\" option"
 label = "Enable Server Certificate"
 
 [admin.settings.features.serverCertificate.organizationName]
@@ -1029,7 +1029,7 @@ description = "URL or filename to cookie policy"
 label = "Cookie Policy"
 
 [admin.settings.legal.disclaimer]
-message = "By customizing these legal documents, you assume full responsibility for ensuring compliance with all applicable laws and regulations, including but not limited to GDPR and other EU data protection requirements. Only modify these settings if: (1) you are operating a personal/private instance, (2) you are outside EU jurisdiction and understand your local legal obligations, or (3) you have obtained proper legal counsel and accept sole responsibility for all user data and legal compliance. Stirling-PDF and its developers assume no liability for your legal obligations."
+message = "By customizing these legal documents, you assume full responsibility for ensuring compliance with all applicable laws and regulations, including but not limited to GDPR and other EU data protection requirements. Only modify these settings if: (1) you are operating a personal/private instance, (2) you are outside EU jurisdiction and understand your local legal obligations, or (3) you have obtained proper legal counsel and accept sole responsibility for all user data and legal compliance. DocuMind and its developers assume no liability for your legal obligations."
 title = "Legal Responsibility Warning"
 
 [admin.settings.legal.impressum]
@@ -1504,7 +1504,7 @@ disable = "Disable analytics"
 enable = "Enable analytics"
 learnMore = "Learn more about our analytics"
 paragraph1 = "Stirling PDF has opt-in analytics to help us improve the product. We do not track any personal information or file contents."
-paragraph2 = "Please consider enabling analytics to help Stirling-PDF grow and to allow us to understand our users better."
+paragraph2 = "Please consider enabling analytics to help DocuMind grow and to allow us to understand our users better."
 privacyAssurance = "We do not track any personal information or the contents of your files."
 settings = "You can change the settings for analytics in the config/settings.yml file"
 title = "Do you want to help make Stirling PDF better?"
@@ -1886,7 +1886,7 @@ tags = "pdf,split,document,organization"
 description = "Print, Insert, Scan, upload, and let us auto-separate your documents. No manual work sorting needed."
 dividerDownload2 = "Download 'Auto Splitter Divider (with instructions).pdf'"
 duplexMode = "Duplex Mode (Front and back scanning)"
-formPrompt = "Submit PDF containing Stirling-PDF Page dividers:"
+formPrompt = "Submit PDF containing DocuMind Page dividers:"
 header = "Auto Split PDF"
 submit = "Submit"
 tags = "QR-based,separate,scan-segment,organize"
@@ -2208,7 +2208,7 @@ bullet1 = "Supports PEM, PKCS12, JKS, and server certificate formats"
 bullet2 = "Option to show or hide signature on the PDF"
 bullet3 = "Add reason, location, and signer name"
 bullet4 = "Choose which page to place visible signatures"
-bullet5 = "Use server certificate for simple 'Sign with Stirling-PDF' option"
+bullet5 = "Use server certificate for simple 'Sign with DocuMind' option"
 text = "To sign a PDF, you need a digital certificate (like PEM, PKCS12, or JKS). You can choose to make the signature visible on the document or keep it invisible for security only."
 title = "Adding Signatures"
 
@@ -6466,8 +6466,8 @@ hideTools = "Hide unavailable tools ▴"
 messageNoFallback = "Tools are unavailable until your server comes back online."
 messageWithFallback = "Some tools require a server connection."
 showTools = "View unavailable tools ▾"
-title = "Your Stirling-PDF server is unreachable"
-toolNotAvailableLocally = "Your Stirling-PDF server is offline and \"{{endpoint}}\" is not available on the local backend."
+title = "Your DocuMind server is unreachable"
+toolNotAvailableLocally = "Your DocuMind server is offline and \"{{endpoint}}\" is not available on the local backend."
 
 [session]
 expired = "Your session has expired. Please refresh the page and try again."
@@ -7429,14 +7429,14 @@ trialing = "Trial"
 
 [survey]
 button = "Take Survey"
-changes = "Stirling-PDF has changed since the last survey! To find out more please check our blog post here:"
+changes = "DocuMind has changed since the last survey! To find out more please check our blog post here:"
 changes2 = "With these changes we are getting paid business support and funding"
-description = "Stirling-PDF has no tracking so we want to hear from our users to improve Stirling-PDF!"
+description = "DocuMind has no tracking so we want to hear from our users to improve DocuMind!"
 disabled = "(Survey popup will be disabled in following updates but available at foot of page)"
 dontShowAgain = "Don't show again"
 nav = "Survey"
-please = "Please consider taking our survey to have input on the future of Stirling-PDF!"
-title = "Stirling-PDF Survey"
+please = "Please consider taking our survey to have input on the future of DocuMind!"
+title = "DocuMind Survey"
 
 [survey.meeting]
 1 = "If you're using Stirling PDF at work, we'd love to speak to you. We're offering technical support sessions in exchange for a 15 minute user discovery session."
@@ -7474,7 +7474,7 @@ favorites = "Favourites"
 heading = "All tools (fullscreen view)"
 noResults = "Try adjusting your search or toggle descriptions to find what you need."
 recommended = "Recommended"
-selfHostedOffline = "Requires your Stirling-PDF server (currently offline):"
+selfHostedOffline = "Requires your DocuMind server (currently offline):"
 showDetails = "Show Details"
 unavailable = "Disabled by server administrator:"
 unavailableDependency = "Unavailable - required tool missing on server:"
