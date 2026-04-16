@@ -62,12 +62,14 @@ jobs:
 
       - name: Login to Docker Hub
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        if: ${{ secrets.DOCKER_HUB_USERNAME != '' }}
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_API }}
 
       - name: Build and push test image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        if: ${{ secrets.DOCKER_HUB_USERNAME != '' }}
         with:
           context: .
           file: ./docker/embedded/Dockerfile
@@ -79,12 +81,14 @@ jobs:
           platforms: linux/amd64
 
       - name: Set up SSH
+        if: ${{ secrets.NEW_VPS_SSH_KEY != '' }}
         run: |
           mkdir -p ~/.ssh/
           echo "${{ secrets.NEW_VPS_SSH_KEY }}" > ../private.key
           sudo chmod 600 ../private.key
 
       - name: Deploy to VPS
+        if: ${{ secrets.NEW_VPS_SSH_KEY != '' }}
         run: |
           cat > docker-compose.yml << EOF
           version: '3.3'
@@ -164,6 +168,7 @@ jobs:
 
       - name: Run TestDriver.ai
         uses: testdriverai/action@f0d0f45fdd684db628baa843fe9313f3ca3a8aa8 #1.1.3
+        if: ${{ secrets.TESTDRIVER_API_KEY != '' }}
         with:
           key: ${{secrets.TESTDRIVER_API_KEY}}
           prerun: |
@@ -191,13 +196,14 @@ jobs:
           egress-policy: audit
 
       - name: Set up SSH
+        if: ${{ secrets.NEW_VPS_SSH_KEY != '' }}
         run: |
           mkdir -p ~/.ssh/
           echo "${{ secrets.NEW_VPS_SSH_KEY }}" > ../private.key
           sudo chmod 600 ../private.key
 
       - name: Cleanup deployment
-        if: always()
+        if: ${{ always() && secrets.NEW_VPS_SSH_KEY != '' }}
         run: |
           ssh -i ../private.key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.NEW_VPS_USERNAME }}@${{ secrets.NEW_VPS_HOST }} << EOF
             cd /stirling/test-${{ github.sha }}

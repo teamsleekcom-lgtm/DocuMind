@@ -62,7 +62,7 @@ if (rootProject.ext.mavenUrl.isEmpty()) {
 jar {
     enabled = false
     manifest {
-        attributes "Implementation-Title": "Stirling-PDF",
+        attributes "Implementation-Title": "DocuMind",
             "Implementation-Version": project.version
     }
 }
@@ -146,7 +146,7 @@ subprojects {
         }
     }
 
-    if (project.name != "stirling-pdf") {
+    if (project.name != "documind") {
         bootJar {
             enabled = false
         }
@@ -380,7 +380,7 @@ subprojects {
         dependsOn(rootProject.tasks.writeVersion)
     }
 
-    if (name == 'stirling-pdf') {
+    if (name == 'documind') {
         apply plugin: 'org.springdoc.openapi-gradle-plugin'
 
         openApi {
@@ -457,11 +457,11 @@ licenseReport {
     configurations = [ "productionRuntimeClasspath", "runtimeClasspath" ]
 }
 
-// Configure the forked spring boot run task to properly delegate to the stirling-pdf module
+// Configure the forked spring boot run task to properly delegate to the documind module
 tasks.named('forkedSpringBootRun') {
-    dependsOn ':stirling-pdf:bootRun'
+    dependsOn ':documind:bootRun'
     doFirst {
-        println "Delegating forkedSpringBootRun to :stirling-pdf:bootRun"
+        println "Delegating forkedSpringBootRun to :documind:bootRun"
     }
 }
 
@@ -493,7 +493,7 @@ sonar {
 
 swaggerhubUpload {
     // dependsOn = generateOpenApiDocs  // Depends on your task generating Swagger docs
-    api = "Stirling-PDF"  // The name of your API on SwaggerHub
+    api = "DocuMind"  // The name of your API on SwaggerHub
     owner = "${System.getenv().getOrDefault('SWAGGERHUB_USER', 'Frooodle')}"  // Your SwaggerHub username (or organization name)
     version = project.version  // The version of your API
     inputFile = file("SwaggerDoc.json")  // The path to your Swagger docs
@@ -520,7 +520,7 @@ repositories {
 }
 
 dependencies {
-    implementation project(':stirling-pdf')
+    implementation project(':documind')
     implementation project(':common')
     if (rootProject.ext.isSecurityDisabled()) {
         implementation project(':proprietary')
@@ -548,21 +548,21 @@ tasks.register('printVersion') {
 
 tasks.named('bootRun') {
     group = 'application'
-    description = 'Delegates to :stirling-pdf:bootRun'
-    dependsOn ':stirling-pdf:bootRun'
+    description = 'Delegates to :documind:bootRun'
+    dependsOn ':documind:bootRun'
 
     doFirst {
-        println "Delegating to :stirling-pdf:bootRun"
+        println "Delegating to :documind:bootRun"
     }
 }
 
 tasks.named('build') {
     group = 'build'
-    description = 'Delegates to :stirling-pdf:bootJar'
-    dependsOn ':stirling-pdf:bootJar', 'buildRestartHelper', 'syncAppVersion'
+    description = 'Delegates to :documind:bootJar'
+    dependsOn ':documind:bootJar', 'buildRestartHelper', 'syncAppVersion'
 
     doFirst {
-        println "Delegating to :stirling-pdf:bootJar"
+        println "Delegating to :documind:bootJar"
     }
 }
 

@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p frontend/src-tauri/binaries
-          cp build/libs/DocuMind-*.jar frontend/src-tauri/binaries/DocuMind.jar
+          cp app/core/build/libs/*ocu?ind-*.jar frontend/src-tauri/binaries/DocuMind.jar
 
       - name: install Frontend dependencies
         run: cd frontend && npm install

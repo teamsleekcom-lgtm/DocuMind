@@ -45,7 +45,7 @@ jobs:
           gradle-version: 9.3.1
 
       - name: Generate Swagger documentation
-        run: ./gradlew :DocuMind:generateOpenApiDocs
+        run: ./gradlew :documind:generateOpenApiDocs
 
       - name: Upload Swagger Documentation to SwaggerHub
         run: ./gradlew swaggerhubUpload
