@@ -148,11 +148,11 @@ async function main() {
   const { getIcons } = await import('@iconify/utils');
 
   // Extract only our used icons from the full set
-  const extractedIcons = getIcons(icons, usedIcons);
+  let extractedIcons = usedIcons.length > 0 ? getIcons(icons, usedIcons) : null;
 
   if (!extractedIcons) {
-    console.error('❌ Failed to extract icons');
-    process.exit(1);
+    info('⚠️ No icons extracted (or usedIcons is empty). Proceeding with empty set.');
+    extractedIcons = { prefix: 'material-symbols', icons: {} };
   }
 
   // Check for missing icons
